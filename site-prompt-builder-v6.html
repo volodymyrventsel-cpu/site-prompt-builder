@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SitePromptBuilder v6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+:root{
+  --bg:#07090e;--s1:#0d0f16;--s2:#13161f;--s3:#181c28;
+  --bd:#1e2235;--bd2:#28304a;
+  --ac:#4f8eff;--ac2:#7c5cfc;--gold:#f0c040;
+  --grn:#3ecf8e;--red:#f06060;--ora:#f08040;
+  --tx:#e2e5f0;--m1:#5a6180;--m2:#8890aa;
+  --r:8px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+a{color:var(--ac);text-decoration:none;}
+
+/* HEADER */
+.hdr{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 24px;height:50px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:-.3px;}
+.logo span{color:var(--ac);}
+.badge{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:4px;}
+.bv{background:var(--bd);color:var(--m1);}
+.bnew{background:#f0c04014;border:1px solid #f0c04035;color:var(--gold);}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:9px;font-family:'DM Mono',monospace;border:1px solid;}
+.ta{background:#4f8eff10;border-color:#4f8eff30;color:#7ab0ff;}
+.tp{background:#7c5cfc10;border-color:#7c5cfc30;color:#a98dfc;}
+.to{background:#f0c04010;border-color:#f0c04030;color:#e6b840;}
+
+/* STEPBAR */
+.stepbar{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 24px;display:flex;align-items:center;height:48px;gap:0;overflow-x:auto;}
+.si{display:flex;align-items:center;gap:8px;padding:0 14px 0 0;cursor:pointer;opacity:.35;transition:opacity .2s;white-space:nowrap;}
+.si.act{opacity:1;}.si.done{opacity:.6;}.si.done:hover,.si.act:hover{opacity:1;}
+.si:not(.act):not(.done){pointer-events:none;}
+.snum{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--m1);transition:all .3s;flex-shrink:0;}
+.si.act .snum{background:var(--ac);border-color:var(--ac);color:#fff;}
+.si.done .snum{background:var(--grn);border-color:var(--grn);color:#07090e;font-size:12px;}
+.slbl{font-family:'Syne',sans-serif;font-weight:600;font-size:11px;}
+.ssub{font-size:9px;color:var(--m1);font-family:'DM Mono',monospace;}
+.sarr{width:24px;height:1px;background:var(--bd2);margin:0 2px;}
+
+/* VERTICAL TABS (Step 1) */
+.vtabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:20px;}
+.vtab{padding:11px 24px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border-bottom:2px solid transparent;color:var(--m1);transition:all .2s;display:flex;align-items:center;gap:8px;}
+.vtab:hover{color:var(--tx);}
+.vtab.act{color:var(--ac);border-bottom-color:var(--ac);}
+.vtab-badge{font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;}
+.vtab-fin .vtab-badge{background:#4f8eff18;color:#7ab0ff;}
+.vtab-mkt .vtab-badge{background:#f0804018;color:#f09050;}
+.vert-desc{font-size:11px;color:var(--m2);margin-bottom:16px;font-family:'DM Mono',monospace;}
+
+/* LAYOUT */
+.body{display:flex;height:calc(100vh - 98px);}
+.sidebar{width:200px;background:var(--s1);border-right:1px solid var(--bd);overflow-y:auto;flex-shrink:0;transition:width .3s;}
+.sidebar.hide{width:0;overflow:hidden;}
+.content{flex:1;overflow-y:auto;}
+
+/* SIDEBAR */
+.sb-s{padding:10px 12px;border-bottom:1px solid var(--bd);}
+.sb-t{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--m1);margin-bottom:7px;}
+.db{width:100%;text-align:left;padding:6px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--tx);font-size:11px;margin-bottom:2px;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.db:hover{background:var(--s2);}.db.act{background:var(--s2);border-color:var(--bd);}
+.db .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.db .pt{font-size:8px;font-family:'DM Mono',monospace;margin-left:auto;opacity:.5;}
+
+/* PANELS */
+.panel{display:none;padding:24px;min-height:100%;padding-bottom:60px;}
+.panel.act{display:block;}
+.h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px;}
+.desc{color:var(--m2);font-size:12px;margin-bottom:20px;}
+
+/* CATALOG */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;}
+.tc{background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--r2);padding:18px 14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.tc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--cc,#4f8eff)07,transparent 60%);opacity:0;transition:opacity .3s;}
+.tc:hover{border-color:var(--cc,var(--ac));transform:translateY(-2px);}
+.tc:hover::before,.tc.sel::before{opacity:1;}
+.tc.sel{border-color:var(--cc,var(--ac));background:color-mix(in srgb,var(--cc,var(--ac)) 7%,var(--s1));}
+.tc-ico{font-size:26px;margin-bottom:8px;}
+.tc-ttl{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px;}
+.tc-dsc{font-size:11px;color:var(--m2);line-height:1.45;}
+.tc-tgs{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;}
+.tc-tg{font-size:8px;padding:1px 6px;border-radius:3px;font-family:'DM Mono',monospace;background:var(--bd);color:var(--m2);}
+.tc-chk{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--cc,var(--ac));display:none;align-items:center;justify-content:center;font-size:10px;color:#fff;}
+.tc.sel .tc-chk{display:flex;}
+.tc-stack{font-size:8px;font-family:'DM Mono',monospace;margin-top:6px;padding:2px 6px;border-radius:3px;display:inline-block;}
+.stack-wp{background:#4f8eff18;color:#7ab0ff;}
+.stack-html{background:#f0804018;color:#f09050;}
+
+/* BLOCK BUILDER */
+.bwrap{display:flex;gap:16px;padding:24px;}
+.bleft{flex:1;min-width:0;}
+.bright{width:290px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 160px);overflow-y:auto;}
+.slot{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+.slot.disabled{opacity:.4;}
+.sh{padding:9px 13px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;}
+.snum2{font-family:'DM Mono',monospace;font-size:9px;color:var(--m1);background:var(--bd);padding:1px 6px;border-radius:3px;}
+.sttl{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;}
+.sreq{font-size:9px;margin-left:auto;font-family:'DM Mono',monospace;}
+.svars{padding:8px 11px;display:flex;flex-direction:column;gap:5px;}
+.vo{border:1px solid var(--bd);border-radius:6px;cursor:pointer;transition:all .15s;overflow:hidden;position:relative;}
+.vo:hover{border-color:var(--ac);}
+.vo.sel{border-color:var(--ac);background:#4f8eff08;}
+.vo.desel{opacity:.4;}
+.vh{padding:7px 11px;display:flex;align-items:center;gap:7px;}
+.vlet{font-family:'DM Mono',monospace;font-size:9px;color:var(--m1);width:14px;flex-shrink:0;}
+.vo.sel .vlet{color:var(--ac);}
+.vname{font-weight:500;font-size:12px;}
+.vtags{margin-left:auto;display:flex;gap:3px;}
+.vbody{padding:0 11px 8px;display:none;}
+.vo.sel .vbody,.vo:hover .vbody{display:block;}
+.vdesc{font-size:10px;color:var(--m2);margin-bottom:5px;}
+.desel-hint{font-size:9px;color:var(--m1);font-family:'DM Mono',monospace;padding:4px 8px;background:var(--bd);border-radius:4px;margin-top:4px;display:none;}
+.vo.sel .desel-hint{display:block;}
+
+/* WIREFRAMES */
+.wf{background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:6px;font-size:8px;color:var(--m1);}
+.wb{background:var(--bd);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--m1);}
+.wln{height:4px;background:var(--bd);border-radius:2px;margin-bottom:3px;}
+.wnav{display:flex;gap:3px;align-items:center;width:100%;height:18px;background:var(--s1);border-radius:2px;padding:0 5px;margin-bottom:4px;}
+.wlog{width:36px;height:7px;background:var(--ac);opacity:.5;border-radius:2px;}
+.wni{display:flex;gap:3px;margin-left:auto;}
+.wni div{width:20px;height:4px;background:var(--bd);border-radius:1px;}
+.w3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;}
+.w2{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.wcard{background:var(--bd);border-radius:3px;padding:4px;}
+.wtag{height:8px;width:36px;background:var(--ac);border-radius:2px;opacity:.35;}
+
+/* DRAFT PROMPT */
+.po{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
+.poh{padding:9px 13px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;}
+.pot{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;}
+.stats{display:flex;gap:5px;padding:7px 11px 0;flex-wrap:wrap;}
+.stat{background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:9px;color:var(--m1);}
+.stat span{color:var(--tx);}
+.potext{padding:11px;font-family:'DM Mono',monospace;font-size:9px;line-height:1.8;color:#a0a8c0;max-height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;}
+
+/* DESIGN ANALYZER */
+.analyzer-wrap{padding:24px;max-width:960px;}
+.ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.upzone{background:var(--s1);border:2px dashed var(--bd2);border-radius:var(--r2);padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+.upzone:hover,.upzone.drag{border-color:var(--ac);background:#4f8eff05;}
+.upzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.uz-ico{font-size:28px;margin-bottom:7px;}.uz-t{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px;}.uz-s{font-size:11px;color:var(--m1);}
+.prevs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;justify-content:center;}
+.pth{position:relative;width:68px;height:52px;border-radius:5px;overflow:hidden;border:1px solid var(--bd);}
+.pth img{width:100%;height:100%;object-fit:cover;}
+.pdel{position:absolute;top:1px;right:1px;background:#f0606080;border:none;border-radius:2px;color:#fff;font-size:9px;cursor:pointer;padding:1px 4px;}
+.urlzone{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);padding:18px;}
+.urlzone-t{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:4px;}
+.urlzone-s{font-size:11px;color:var(--m2);margin-bottom:10px;}
+.urllist{display:flex;flex-direction:column;gap:6px;}
+.urlrow{display:flex;gap:5px;}
+.urlinput{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 10px;color:var(--tx);font-size:11px;font-family:'DM Mono',monospace;outline:none;}
+.urlinput:focus{border-color:var(--ac);}
+.urldel{padding:6px 9px;background:transparent;border:1px solid transparent;border-radius:5px;color:var(--m1);cursor:pointer;}
+.urldel:hover{color:var(--red);border-color:var(--red);}
+.urladd{margin-top:7px;padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--m1);cursor:pointer;font-size:11px;transition:all .15s;}
+.urladd:hover{border-color:var(--ac);color:var(--ac);}
+.stags-box{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.stags-t{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;}
+.stags{display:flex;flex-wrap:wrap;gap:5px;}
+.stag{padding:4px 10px;border-radius:5px;font-size:10px;font-family:'DM Mono',monospace;background:var(--bd);color:var(--m2);border:1px solid var(--bd2);cursor:pointer;transition:all .15s;}
+.stag.on{background:#4f8eff18;border-color:var(--ac);color:var(--ac);}
+.abtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:var(--r);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:opacity .2s;}
+.abtn:hover{opacity:.88;}.abtn:disabled{opacity:.35;cursor:not-allowed;}
+.slog{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:10px;display:none;}
+.slog.show{display:block;}
+.ll{display:flex;gap:7px;align-items:center;margin-bottom:3px;}
+.ll:last-child{margin-bottom:0;}
+.ld{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ld-ok{background:var(--grn);}.ld-sp{background:var(--gold);animation:pulse 1s ease-in-out infinite;}.ld-er{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* RESULTS */
+.result-box{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-top:20px;}
+.rb-h{padding:13px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px;}
+.rb-t{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+.rb-body{padding:18px;}
+.rb-sec{margin-bottom:20px;}.rb-sec:last-child{margin-bottom:0;}
+.rb-sec-t{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--m1);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.ana-desc{font-size:12px;color:var(--tx);line-height:1.65;background:var(--s2);border-radius:var(--r);padding:12px;border-left:3px solid var(--ac);}
+.palette-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;}
+.color-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.color-swatch-wrap{position:relative;}
+.color-swatch{width:52px;height:52px;border-radius:var(--r);border:1px solid var(--bd2);cursor:pointer;transition:transform .15s;display:block;}
+.color-swatch:hover{transform:scale(1.05);}
+.color-edit-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:none;padding:0;}
+.color-hex-input{width:68px;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:3px 6px;color:var(--tx);font-size:9px;font-family:'DM Mono',monospace;text-align:center;outline:none;}
+.color-hex-input:focus{border-color:var(--ac);}
+.color-role{font-family:'DM Mono',monospace;font-size:8px;color:var(--m1);text-align:center;}
+.copy-swatch{width:68px;padding:3px;background:var(--s3);border:1px solid var(--bd);border-radius:4px;color:var(--m1);cursor:pointer;font-size:8px;font-family:'DM Mono',monospace;text-align:center;transition:all .15s;}
+.copy-swatch:hover{border-color:var(--ac);color:var(--ac);}
+.font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.fcard{background:var(--s2);border:1.5px solid var(--bd);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.fcard:hover{border-color:var(--ac2);}.fcard.app{border-color:var(--grn);background:color-mix(in srgb,var(--grn) 6%,var(--s2));}
+.fc-role{font-family:'DM Mono',monospace;font-size:8px;color:var(--m1);margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px;}
+.fc-name{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:1px;}
+.fc-meta{font-size:9px;color:var(--m1);margin-bottom:8px;font-family:'DM Mono',monospace;}
+.fc-prev{font-size:20px;line-height:1.25;color:var(--tx);margin-bottom:8px;min-height:28px;}
+.fc-reason{font-size:9px;color:var(--m2);line-height:1.4;border-top:1px solid var(--bd);padding-top:7px;margin-top:5px;}
+.fc-ap{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:4px;font-size:8px;font-family:'DM Mono',monospace;cursor:pointer;border:1px solid var(--bd2);background:transparent;color:var(--m1);transition:all .15s;}
+.fc-ap:hover{border-color:var(--grn);color:var(--grn);}.fc-ap.done{background:var(--grn);border-color:var(--grn);color:#07090e;}
+.load-fonts-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;background:var(--s2);border:1px dashed var(--bd2);border-radius:var(--r);color:var(--m1);cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;transition:all .15s;margin-top:10px;}
+.load-fonts-btn:hover{border-color:var(--ac);color:var(--ac);}
+
+/* DESIGN STUDIO */
+.studio-wrap{display:flex;gap:0;height:calc(100vh - 98px);overflow:hidden;}
+.studio-left{width:320px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--bd);overflow-y:auto;padding:18px;}
+.studio-right{flex:1;background:var(--bg);overflow-y:auto;padding:18px;}
+.studio-preview{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;min-height:500px;}
+.preview-header-bar{height:40px;background:var(--s3);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;gap:8px;}
+.phb-dots{display:flex;gap:5px;}
+.phb-dot{width:10px;height:10px;border-radius:50%;}
+.phb-url{flex:1;background:var(--bd);border-radius:4px;height:22px;margin:0 16px;display:flex;align-items:center;padding:0 8px;}
+.phb-url span{font-family:'DM Mono',monospace;font-size:9px;color:var(--m1);}
+.preview-blocks{padding:12px;display:flex;flex-direction:column;gap:6px;}
+.preview-block{border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:grab;transition:all .2s;user-select:none;border:1.5px solid transparent;position:relative;}
+.preview-block:active{cursor:grabbing;}
+.preview-block.drag-over{border-color:var(--ac);background:#4f8eff10;}
+.preview-block.dragging{opacity:.4;transform:scale(.98);}
+.preview-block.pb-off{opacity:.3;border-style:dashed;cursor:default;}
+.pb-handle{color:var(--m1);font-size:14px;flex-shrink:0;}
+.pb-icon{font-size:18px;flex-shrink:0;}
+.pb-info{flex:1;min-width:0;}
+.pb-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;}
+.pb-variant{font-size:10px;color:var(--m1);font-family:'DM Mono',monospace;}
+.pb-change{padding:3px 8px;background:var(--s3);border:1px solid var(--bd);border-radius:4px;font-size:9px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--m1);transition:all .15s;flex-shrink:0;}
+.pb-change:hover{border-color:var(--ac);color:var(--ac);}
+.pb-toggle{padding:3px 8px;border:1px solid var(--bd);border-radius:4px;font-size:9px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .15s;flex-shrink:0;background:transparent;}
+.pb-toggle.on{color:var(--grn);border-color:var(--grn);}
+.pb-toggle.off{color:var(--red);border-color:var(--red);}
+.color-preview-strip{display:flex;gap:0;height:8px;border-radius:4px;overflow:hidden;margin-bottom:14px;}
+.color-preview-strip div{flex:1;}
+.font-preview-box{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.fpb-display{font-size:22px;font-weight:700;margin-bottom:4px;}
+.fpb-body{font-size:13px;color:var(--m2);line-height:1.6;}
+
+/* CONTENT GENERATOR */
+.cgen-wrap{display:flex;gap:16px;padding:24px;}
+.cgen-left{flex:1;min-width:0;}
+.cgen-right{width:340px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 160px);overflow-y:auto;}
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.dc{background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;}
+.dc:hover{border-color:var(--ac);}.dc.sel{border-color:var(--ac);background:#4f8eff0a;}
+.dc-dot{width:7px;height:7px;border-radius:50%;margin-bottom:6px;}
+.dc-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;margin-bottom:1px;}
+.dc-sub{font-size:9px;color:var(--m1);font-family:'DM Mono',monospace;}
+.ctype-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.ct{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--s1);color:var(--m1);cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;transition:all .15s;}
+.ct:hover{border-color:var(--ac);}.ct.sel{border-color:var(--ac);color:var(--ac);background:#4f8eff0d;}
+.cparams{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.cp-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;}
+.cp-row:last-child{margin-bottom:0;}
+.cp-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--m1);min-width:80px;padding-top:8px;}
+.cp-in{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 10px;color:var(--tx);font-size:12px;outline:none;min-width:0;}
+.cp-in:focus{border-color:var(--ac);}
+.cp-sel{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 10px;color:var(--tx);font-size:12px;outline:none;cursor:pointer;}
+.gen-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--ac2),var(--ac));border:none;border-radius:var(--r);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:opacity .2s;}
+.gen-btn:hover{opacity:.88;}.gen-btn:disabled{opacity:.35;cursor:not-allowed;}
+.cresult{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
+.crh{padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;}
+.crt{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;}
+.crb{padding:14px;font-size:12px;line-height:1.75;color:var(--tx);white-space:pre-wrap;word-break:break-word;max-height:420px;overflow-y:auto;}
+
+/* FINAL PROMPT */
+.final-wrap{padding:24px;max-width:900px;}
+.fp-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.fp-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:12px;text-align:center;}
+.fp-ico{font-size:20px;margin-bottom:3px;}.fp-val{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px;}
+.fp-lbl{font-size:9px;color:var(--m1);font-family:'DM Mono',monospace;}
+.fp-box{background:var(--s1);border:1px solid var(--grn);border-radius:var(--r2);overflow:hidden;}
+.fp-bh{padding:11px 14px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;}
+.fp-bt{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--grn);}
+.fp-text{padding:13px;font-family:'DM Mono',monospace;font-size:9px;line-height:1.85;color:#a0a8c0;max-height:500px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;}
+
+/* SHARED */
+.btn{padding:8px 18px;border-radius:var(--r);cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;font-size:12px;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-p{background:var(--ac);color:#fff;}.btn-p:hover{opacity:.88;}
+.btn-s{background:var(--s2);color:var(--tx);border:1px solid var(--bd);}.btn-s:hover{border-color:var(--ac);}
+.btn-g{background:transparent;color:var(--m1);border:1px solid var(--bd);}.btn-g:hover{color:var(--tx);}
+.copybtn{padding:5px 11px;background:var(--ac);color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:9px;font-family:'DM Mono',monospace;transition:opacity .15s;}
+.copybtn:hover{opacity:.8;}.copybtn.grn{background:var(--grn);color:#07090e;}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);}
+.note{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:9px 12px;font-size:11px;color:var(--m2);display:flex;gap:7px;margin-bottom:14px;}
+.comp-badge{font-size:9px;padding:2px 7px;border-radius:3px;font-family:'DM Mono',monospace;margin-left:auto;}
+.comp-ok{background:#3ecf8e18;color:var(--grn);border:1px solid #3ecf8e30;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--grn);color:#07090e;padding:9px 16px;border-radius:var(--r);font-family:'DM Mono',monospace;font-size:10px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}
+.spin{display:inline-block;animation:sp 1s linear infinite;}@keyframes sp{to{transform:rotate(360deg);}}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Site<span>Prompt</span>Builder</div>
+  <div class="badge bv">v6.0</div>
+  <div class="badge bnew">✦ Finance + Marketing</div>
+  <div class="hdr-r">
+    <span class="tag ta">Alpha One</span><span class="tag tp">Platoon</span><span class="tag to">OG</span>
+  </div>
+</div>
+
+<div class="stepbar">
+  <div class="si act" id="si1" onclick="goStep(1)"><div class="snum" id="sn1">1</div><div><div class="slbl">Вертикаль & Тип</div><div class="ssub">Finance / Marketing</div></div></div>
+  <div class="sarr"></div>
+  <div class="si" id="si2" onclick="goStep(2)"><div class="snum" id="sn2">2</div><div><div class="slbl">Блоки</div><div class="ssub">Конфигурация</div></div></div>
+  <div class="sarr"></div>
+  <div class="si" id="si3" onclick="goStep(3)"><div class="snum" id="sn3">3</div><div><div class="slbl">Дизайн</div><div class="ssub">Цвета + шрифты</div></div></div>
+  <div class="sarr"></div>
+  <div class="si" id="si4" onclick="goStep(4)"><div class="snum" id="sn4">4</div><div><div class="slbl">Студия</div><div class="ssub">Превью + DnD</div></div></div>
+  <div class="sarr"></div>
+  <div class="si" id="si5" onclick="goStep(5)"><div class="snum" id="sn5">5</div><div><div class="slbl">Контент</div><div class="ssub">AI-генерация</div></div></div>
+  <div class="sarr"></div>
+  <div class="si" id="si6" onclick="goStep(6)"><div class="snum" id="sn6">6</div><div><div class="slbl">Мастер-промт</div><div class="ssub">Финал</div></div></div>
+</div>
+
+<div class="body">
+  <div class="sidebar hide" id="sb">
+    <div class="sb-s"><div class="sb-t">Alpha One LLC</div>
+      <button class="db act" onclick="selDom('trt')" id="btn-trt"><span class="dot" style="background:#4f8eff"></span>TheRiskTolerance<span class="pt">AO</span></button>
+      <button class="db" onclick="selDom('mnvx')" id="btn-mnvx"><span class="dot" style="background:#4f8eff"></span>Monevex<span class="pt">AO</span></button>
+      <button class="db" onclick="selDom('egr')" id="btn-egr"><span class="dot" style="background:#4f8eff"></span>EasyGoldRetirement<span class="pt">AO</span></button>
+    </div>
+    <div class="sb-s"><div class="sb-t">OG Parent</div>
+      <button class="db" onclick="selDom('ngz')" id="btn-ngz"><span class="dot" style="background:#f0c040"></span>NewGrowthZones<span class="pt">OG</span></button>
+      <button class="db" onclick="selDom('ifw')" id="btn-ifw"><span class="dot" style="background:#f0c040"></span>InsightfulWord<span class="pt">OG</span></button>
+      <button class="db" onclick="selDom('dfb')" id="btn-dfb"><span class="dot" style="background:#f0c040"></span>DailyFinBrief<span class="pt">OG</span></button>
+    </div>
+    <div class="sb-s"><div class="sb-t">Platoon LLC</div>
+      <button class="db" onclick="selDom('str')" id="btn-str"><span class="dot" style="background:#7c5cfc"></span>SafeTradeReport<span class="pt">PL</span></button>
+      <button class="db" onclick="selDom('pk')" id="btn-pk"><span class="dot" style="background:#7c5cfc"></span>PortfolioKeys<span class="pt">PL</span></button>
+      <button class="db" onclick="selDom('ibt')" id="btn-ibt"><span class="dot" style="background:#7c5cfc"></span>InvestorBizTalk<span class="pt">PL</span></button>
+    </div>
+  </div>
+
+  <div class="content" id="content-area">
+
+    <!-- STEP 1 -->
+    <div class="panel act" id="p1" style="padding:24px;">
+      <div class="h1">Шаг 1 — Вертикаль & Тип сайта</div>
+      <div class="desc">Выберите вертикаль, затем тип сайта</div>
+      <div class="vtabs">
+        <div class="vtab vtab-fin act" id="vtab-finance" onclick="selVertical('finance')">
+          💹 Finance <span class="vtab-badge">WordPress + Tailwind</span>
+        </div>
+        <div class="vtab vtab-mkt" id="vtab-marketing" onclick="selVertical('marketing')">
+          🎯 Marketing <span class="vtab-badge">HTML5 + Tailwind CDN</span>
+        </div>
+      </div>
+      <div class="vert-desc" id="vert-desc">Финансовые сайты — WordPress + Tailwind CSS. Контент-тяжёлые сайты с WP backend.</div>
+      <div class="cat-grid" id="cat-grid"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+        <button class="btn btn-p" id="s1btn" onclick="goStep(2)" disabled>Настроить блоки →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="panel" id="p2">
+      <div class="bwrap">
+        <div class="bleft">
+          <div class="h1" id="b2-title">Шаг 2 — Блоки</div>
+          <div class="desc" id="b2-desc">Выберите вариант. Повторный клик на необязательный блок — отменяет выбор.</div>
+          <div id="slots-c"></div>
+          <div class="step-nav">
+            <button class="btn btn-g" onclick="goStep(1)">← Назад</button>
+            <button class="btn btn-p" onclick="goStep(3)">Дизайн →</button>
+          </div>
+        </div>
+        <div class="bright">
+          <div class="po">
+            <div class="poh"><div class="pot">Черновик промта</div></div>
+            <div class="stats">
+              <div class="stat">Тип: <span id="st-type">—</span></div>
+              <div class="stat">Блоков: <span id="st-blk">0</span></div>
+              <div class="stat">Стек: <span id="st-stack">—</span></div>
+            </div>
+            <div class="potext" id="draft"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="panel" id="p3">
+      <div class="analyzer-wrap">
+        <div class="h1">Шаг 3 — Дизайн-анализ</div>
+        <div class="desc">Загрузите скриншот или вставьте URL. Цвета — Canvas API (без API ключа). Шрифты — из CSS.</div>
+        <div class="ana-grid">
+          <div class="upzone" id="upzone">
+            <input type="file" accept="image/*" multiple onchange="handleFiles(this.files)" id="fileinput"/>
+            <div class="uz-ico">🖼</div>
+            <div class="uz-t">Загрузить скриншот</div>
+            <div class="uz-s">PNG, JPG · до 3 файлов · Drag & drop</div>
+            <div class="prevs" id="prevs"></div>
+          </div>
+          <div class="urlzone">
+            <div class="urlzone-t">🔗 URL референса</div>
+            <div class="urlzone-s">Извлечём Google Fonts и цвета из CSS.</div>
+            <div class="urllist" id="urllist">
+              <div class="urlrow"><input class="urlinput" type="url" placeholder="https://example.com"/><button class="urldel" onclick="this.parentElement.remove()">✕</button></div>
+            </div>
+            <button class="urladd" onclick="addUrl()">+ Добавить URL</button>
+          </div>
+        </div>
+        <div class="stags-box">
+          <div class="stags-t">✏️ Подсказки стиля</div>
+          <div class="stags">
+            <span class="stag" onclick="this.classList.toggle('on')">Минималистичный</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Тёмная тема</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Светлая тема</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Редакционный</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Финансовый</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Маркетинговый / агентский</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Технологичный</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Новостной</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Премиум / люкс</span>
+            <span class="stag" onclick="this.classList.toggle('on')">Bold / Dynamic</span>
+          </div>
+        </div>
+        <div class="slog" id="slog"></div>
+        <button class="abtn" id="abtn" onclick="runAnalysis()"><span>🔍</span> Извлечь цвета и шрифты</button>
+        <div class="result-box hidden" id="rbox">
+          <div class="rb-h"><span style="font-size:18px">🎨</span><div class="rb-t">Результат анализа</div><span style="margin-left:auto;font-size:9px;font-family:'DM Mono',monospace;color:var(--grn)">✓ Готово</span></div>
+          <div class="rb-body">
+            <div class="rb-sec"><div class="rb-sec-t">Визуальный анализ</div><div class="ana-desc" id="r-desc">—</div></div>
+            <div class="rb-sec"><div class="rb-sec-t">Цветовая палитра <span style="font-size:9px;color:var(--m2)">← кликните для редактирования</span></div><div class="palette-row" id="r-colors"></div></div>
+            <div class="rb-sec"><div class="rb-sec-t">Display-шрифты</div><div class="font-grid" id="r-disp-fonts"></div><button class="load-fonts-btn" onclick="loadMoreFonts('display')"><span>+</span> Загрузить ещё</button></div>
+            <div class="rb-sec"><div class="rb-sec-t">Body-шрифты</div><div class="font-grid" id="r-body-fonts"></div><button class="load-fonts-btn" onclick="loadMoreFonts('body')"><span>+</span> Загрузить ещё</button></div>
+            <div class="rb-sec"><div class="rb-sec-t">tailwind.config.js <button class="copybtn" onclick="copyConfig()">Copy</button></div>
+              <div style="background:var(--s2);border-radius:var(--r);padding:12px;font-family:'DM Mono',monospace;font-size:9px;color:#a0a8c0;max-height:180px;overflow-y:auto;"><pre id="r-config" style="white-space:pre-wrap;word-break:break-word;"></pre></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:6px;">
+              <button class="btn btn-g" onclick="goStep(2)">← Назад</button>
+              <button class="btn btn-p" style="flex:1;justify-content:center;" onclick="goStep(4)">В студию →</button>
+            </div>
+          </div>
+        </div>
+        <div class="step-nav"><button class="btn btn-g" onclick="goStep(2)">← Назад</button><button class="btn btn-s" onclick="goStep(4)">Пропустить →</button></div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="panel" id="p4" style="padding:0;">
+      <div class="studio-wrap">
+        <div class="studio-left">
+          <div class="h1" style="font-size:16px;margin-bottom:4px;">Студия дизайна</div>
+          <div style="font-size:11px;color:var(--m2);margin-bottom:14px;">Перетащите блоки. Кнопка ON/OFF — включает/выключает опциональные блоки.</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:8px;">Палитра</div>
+          <div class="color-preview-strip" id="studio-strip"></div>
+          <div id="studio-colors" style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:8px;">Шрифты</div>
+          <div class="font-preview-box">
+            <div class="fpb-display" id="studio-font-disp">Agency Insights</div>
+            <div class="fpb-body" id="studio-font-body">We create experience-driven design and build high-functioning digital products.</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:18px;">
+            <select id="sel-disp-font" class="cp-sel" style="flex:1;font-size:11px;" onchange="updateStudioFonts()"></select>
+            <select id="sel-body-font" class="cp-sel" style="flex:1;font-size:11px;" onchange="updateStudioFonts()"></select>
+          </div>
+          <div class="step-nav" style="margin-top:0;padding-top:14px;">
+            <button class="btn btn-g" onclick="goStep(3)" style="font-size:11px;">← Дизайн</button>
+            <button class="btn btn-p" onclick="goStep(5)" style="font-size:11px;">Контент →</button>
+          </div>
+        </div>
+        <div class="studio-right">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:10px;">Структура сайта — перетащите · ON/OFF — вкл/выкл опциональные</div>
+          <div class="studio-preview">
+            <div class="preview-header-bar">
+              <div class="phb-dots"><div class="phb-dot" style="background:#f06060"></div><div class="phb-dot" style="background:#f0c040"></div><div class="phb-dot" style="background:#3ecf8e"></div></div>
+              <div class="phb-url"><span id="preview-domain-url">yoursite.com</span></div>
+            </div>
+            <div class="preview-blocks" id="preview-blocks"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="panel" id="p5">
+      <div class="cgen-wrap">
+        <div class="cgen-left">
+          <div class="h1">Шаг 5 — Генерация контента</div>
+          <div class="desc" id="cgen-desc">Выберите домен и тип контента.</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:8px;" id="cgen-domain-lbl">Домен</div>
+          <div class="domain-grid" id="domain-grid"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:8px;">Тип контента</div>
+          <div class="ctype-grid" id="ctype-grid"></div>
+          <div class="cparams" id="cparams"></div>
+          <button class="gen-btn" id="gen-btn" onclick="generateContent()"><span>✨</span> Сгенерировать</button>
+          <div class="step-nav"><button class="btn btn-g" onclick="goStep(4)">← Студия</button><button class="btn btn-p" onclick="goStep(6)">Мастер-промт →</button></div>
+        </div>
+        <div class="cgen-right">
+          <div class="cresult hidden" id="cresult">
+            <div class="crh"><div class="crt" id="cr-title">Результат</div><span class="comp-badge comp-ok" id="cr-comp">✓ Compliance OK</span><button class="copybtn grn" style="margin-left:8px;" onclick="copyResult()">Copy</button></div>
+            <div class="crb" id="cr-body"></div>
+          </div>
+          <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-top:10px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--m1);margin-bottom:8px;" id="comp-info-title">Compliance</div>
+            <div style="font-size:11px;color:var(--m2);line-height:1.6;" id="comp-info-body">Загрузка...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="panel" id="p6">
+      <div class="final-wrap">
+        <div class="h1">Шаг 6 — Мастер-Промт</div>
+        <div class="desc">Финальный промт для Google Stitch / Genspark.</div>
+        <div class="fp-cards">
+          <div class="fp-card"><div class="fp-ico">🏗</div><div class="fp-val" id="fp-type">—</div><div class="fp-lbl">Тип сайта</div></div>
+          <div class="fp-card"><div class="fp-ico">⚙</div><div class="fp-val" id="fp-stack">—</div><div class="fp-lbl">Стек</div></div>
+          <div class="fp-card"><div class="fp-ico">🧩</div><div class="fp-val" id="fp-blk">0</div><div class="fp-lbl">Блоков</div></div>
+          <div class="fp-card"><div class="fp-ico">🎨</div><div class="fp-val" id="fp-clr">—</div><div class="fp-lbl">Цвета</div></div>
+        </div>
+        <div class="fp-box">
+          <div class="fp-bh"><span style="font-size:14px">🤖</span><div class="fp-bt">Финальный Мастер-Промт</div><button class="copybtn grn" style="margin-left:auto;" onclick="copyFinal()">📋 Скопировать</button></div>
+          <div class="fp-text" id="fp-text">Загрузка...</div>
+        </div>
+        <div class="step-nav"><button class="btn btn-g" onclick="goStep(5)">← Контент</button><button class="btn btn-p" onclick="resetAll()">+ Новый сайт</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// VERTICALS & SITE TYPES
+// ══════════════════════════════════════════════════
+var VERTICALS = {
+  finance: {id:'finance', lbl:'💹 Finance', desc:'Финансовые сайты — WordPress + Tailwind CSS. WP backend, PHP, ACF Pro.'},
+  marketing: {id:'marketing', lbl:'🎯 Marketing', desc:'Маркетинг агентства — HTML5 + Tailwind CDN. Статические сайты, рендерятся в AI-песочницах.'}
+};
+
+var SITE_TYPES = {
+  finance: [
+    {id:'news', ico:'📰', ttl:'News Site', cc:'#4f8eff', stack:'WP',
+     dsc:'Финансовый новостной портал. WordPress + Tailwind CSS.',
+     tgs:['WP Posts','Categories','Archive'],
+     slots:['hdr','featured','newsletter','newsfeed','special','ftr']},
+    {id:'blog', ico:'✍️', ttl:'Blog/Editorial', cc:'#7c5cfc', stack:'WP',
+     dsc:'Авторский блог с аналитикой. WordPress + Tailwind CSS.',
+     tgs:['Long-form','Author','Tags'],
+     slots:['hdr','hero-blog','newsletter','blogfeed','ftr']},
+    {id:'fin-landing', ico:'🚀', ttl:'Landing Page', cc:'#f0c040', stack:'HTML5',
+     dsc:'Финансовый лендинг — подписка, lead capture. HTML5 + Tailwind CDN.',
+     tgs:['HTML5','CDN','Static'],
+     slots:['hdr','fin-hero','fin-process','fin-features','fin-subscribe','fin-about','ftr']},
+    {id:'fin-sub', ico:'💌', ttl:'Subscription', cc:'#3ecf8e', stack:'HTML5',
+     dsc:'Email-подписка, value props. HTML5 + Tailwind CDN.',
+     tgs:['HTML5','Lead capture'],
+     slots:['hdr','sub-hero','sub-props','fin-features','sub-testimonials','ftr']},
+  ],
+  marketing: [
+    {id:'mkt-main', ico:'🚀', ttl:'Agency Landing', cc:'#f08040', stack:'HTML5',
+     dsc:'Главная страница агентства. Hero, услуги, процесс, о нас, контакт.',
+     tgs:['HTML5','Agency','Single page'],
+     slots:['mkt-hdr','mkt-hero','mkt-stats','mkt-services','mkt-process','mkt-about','mkt-clients','mkt-news','mkt-contact','mkt-ftr']},
+    {id:'mkt-blog', ico:'✍️', ttl:'Agency Blog/Insights', cc:'#7c5cfc', stack:'HTML5',
+     dsc:'Блог и новости агентства — insights, кейсы, тренды.',
+     tgs:['HTML5','Blog','Insights'],
+     slots:['mkt-hdr','mkt-blog-hero','mkt-blog-feed','mkt-contact','mkt-ftr']},
+    {id:'mkt-leads', ico:'💌', ttl:'Lead Capture', cc:'#3ecf8e', stack:'HTML5',
+     dsc:'Лидогенерация — email подписка, value props, testimonials.',
+     tgs:['HTML5','Lead gen','Email'],
+     slots:['mkt-hdr','mkt-sub-hero','mkt-sub-props','mkt-sub-testimonials','mkt-contact','mkt-ftr']},
+  ]
+};
+
+// ══════════════════════════════════════════════════
+// SLOT DEFINITIONS — строки через конкатенацию,
+// без вложенных template literals
+// ══════════════════════════════════════════════════
+var SLOTS = {};
+
+// ── SHARED HEADER (Finance WP) ──
+SLOTS['hdr'] = {id:'hdr', num:'B1', ttl:'Header / Nav', req:true, variants:[
+  {id:'hdr-a', let:'A', name:'Minimal sticky',
+   dsc:'Logo + wp_nav_menu + search. Sticky on scroll.',
+   wf:'hn',
+   prompt:'BLOCK B1-A — HEADER MINIMAL (WordPress + Tailwind)\n'
+     +'Sticky header.php. Classes: bg-gray-950 sticky top-0 z-50.\n'
+     +'Logo: <a href="<?=home_url()?>" aria-label="Home"><img src="<?=get_theme_file_uri(\'img/logo.svg\')?>" alt="<?php bloginfo(\'name\')?> logo" width="140"/></a>\n'
+     +'Navigation: wp_nav_menu([\'theme_location\'=>\'primary\', \'container\'=>false, \'menu_class\'=>\'flex gap-6 text-sm\'])\n'
+     +'Right: search icon toggle. Mobile: hamburger button + hidden menu.\n'
+     +'COMPLIANCE: Logo must be clickable anchor with descriptive alt text.'
+  },
+  {id:'hdr-b', let:'B', name:'Nav + Breaking ticker',
+   dsc:'2 rows: logo/nav + scrolling breaking news marquee.',
+   wf:'ht',
+   prompt:'BLOCK B1-B — HEADER + TICKER (WordPress + Tailwind)\n'
+     +'Row 1: bg-gray-950 h-14 — logo + primary nav + current date.\n'
+     +'Row 2: bg-blue-700 h-8 — CSS marquee animation. Content: WP_Query latest 5 post titles.\n'
+     +'PHP: $ticker = new WP_Query([\'posts_per_page\'=>5, \'orderby\'=>\'date\']);\n'
+     +'COMPLIANCE: Ticker must show real factual headlines only. No fabricated breaking news.'
+  },
+]};
+
+// ── FEATURED NEWS ──
+SLOTS['featured'] = {id:'featured', num:'B2', ttl:'Featured News', req:true, variants:[
+  {id:'feat-a', let:'A', name:'1 large + 2 small',
+   dsc:'Main story 60% + 2 secondary cards.',
+   wf:'fg',
+   prompt:'BLOCK B2-A — FEATURED GRID (WordPress + Tailwind)\n'
+     +'WP_Query posts_per_page=3, orderby=date. Layout: grid lg:grid-cols-[1.8fr_1fr] gap-6.\n'
+     +'Main card: aspect-video thumbnail + category badge + H2 + 2-line excerpt + Read More CTA.\n'
+     +'Right column: 2 stacked article cards with thumbnail + title + date.\n'
+     +'COMPLIANCE: No fabricated view counts. No static date fields.'
+  },
+  {id:'feat-b', let:'B', name:'Tabs: Newest / Popular',
+   dsc:'JS tab switcher — Newest (orderby date) and Popular (post views).',
+   wf:'ft',
+   prompt:'BLOCK B2-B — FEATURED TABS (WordPress + Tailwind)\n'
+     +'Two tabs: "Newest" (WP_Query orderby=date) and "Popular" (orderby=meta_value_num, meta_key=post_views_count).\n'
+     +'Tab switching via Vanilla JS classList toggle. ARIA tabs for accessibility.\n'
+     +'COMPLIANCE: View counts must reflect real tracked data, not hardcoded numbers.'
+  },
+]};
+
+// ── NEWSLETTER ──
+SLOTS['newsletter'] = {id:'newsletter', num:'B3', ttl:'Newsletter Subscribe', req:true, variants:[
+  {id:'nl-a', let:'A', name:'Full-width inline banner',
+   dsc:'Wide email capture banner, centered content.',
+   wf:'ni',
+   prompt:'BLOCK B3-A — NEWSLETTER INLINE (WordPress + Tailwind)\n'
+     +'Section: bg-gray-800 py-10 px-6. Flex items-center justify-between.\n'
+     +'Left: H2 headline + subtext. Right: email input + submit button.\n'
+     +'CF7 or custom AJAX form handler. On success: show confirmation message.\n'
+     +'COMPLIANCE MANDATORY:\n'
+     +'  - NO pre-checked opt-in checkboxes (GDPR, CCPA, CAN-SPAM violation)\n'
+     +'  - Checkbox must be unchecked by default: [ ] I agree to receive email updates\n'
+     +'  - No fabricated subscriber counts ("Join 50,000 readers" only if verified)\n'
+     +'  - Fine print: "No spam. Unsubscribe anytime."\n'
+     +'  - Link to Privacy Policy required'
+  },
+  {id:'nl-b', let:'B', name:'Centered card',
+   dsc:'Max-width centered card with optional social proof.',
+   wf:'nc',
+   prompt:'BLOCK B3-B — NEWSLETTER CARD (WordPress + Tailwind)\n'
+     +'max-w-md mx-auto bg-gray-800 rounded-2xl p-8 text-center.\n'
+     +'Icon + H2 + description + email input + submit button.\n'
+     +'COMPLIANCE: Subscriber count only if real and verified. Unchecked opt-in checkbox.'
+  },
+]};
+
+// ── NEWS FEED ──
+SLOTS['newsfeed'] = {id:'newsfeed', num:'B4', ttl:'News Feed', req:true, variants:[
+  {id:'nf-a', let:'A', name:'3-col responsive grid',
+   dsc:'Responsive card grid with WP_Query pagination.',
+   wf:'ng',
+   prompt:'BLOCK B4-A — NEWS GRID (WordPress + Tailwind)\n'
+     +'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6.\n'
+     +'WP_Query with paged parameter. Each card: thumbnail + category + H3 + excerpt + date + read time.\n'
+     +'Pagination: previous_posts_link() / next_posts_link().\n'
+     +'COMPLIANCE: Dynamic relative dates (PHP human_time_diff()). No static dates. No duplicate images across posts.'
+  },
+  {id:'nf-b', let:'B', name:'List + sticky sidebar',
+   dsc:'70/30 layout — article list left, sidebar right.',
+   wf:'ns',
+   prompt:'BLOCK B4-B — LIST + SIDEBAR (WordPress + Tailwind)\n'
+     +'grid lg:grid-cols-[1fr_300px] gap-8.\n'
+     +'Main: article rows with thumbnail + title + excerpt + meta.\n'
+     +'Sidebar: Recent Posts widget + Categories + Optional subscribe widget. position: sticky top-24.\n'
+     +'COMPLIANCE: No fabricated trending data. Popularity based on real tracked metrics only.'
+  },
+]};
+
+// ── SPECIAL (Finance optional) ──
+SLOTS['special'] = {id:'special', num:'B5', ttl:'Special Block', req:false, variants:[
+  {id:'sp-a', let:'A', name:'Red Flags of Fraud',
+   dsc:'MANDATORY for Alpha One sites. Investor education widget.',
+   wf:'sr',
+   prompt:'BLOCK B5-A — RED FLAGS OF FRAUD [Alpha One Required] (WordPress + Tailwind)\n'
+     +'Section: bg-gray-900 py-12 border-t border-red-900/40.\n'
+     +'H2: "Red Flags of Fraud" with warning icon. 6-item 2x3 grid:\n'
+     +'1. High returns with low risk  2. Pressure to act now  3. FOMO tactics\n'
+     +'4. Unverified testimonials     5. Promises of wealth  6. Unusual payment requests\n'
+     +'CTA button linking to /types-of-fraud/ educational page.\n'
+     +'COMPLIANCE: This block satisfies investor protection disclosure requirements.'
+  },
+  {id:'sp-b', let:'B', name:'Podcast Player',
+   dsc:'Embedded audio player with episode playlist.',
+   wf:'sp',
+   prompt:'BLOCK B5-B — PODCAST PLAYER (WordPress + Tailwind)\n'
+     +'Custom Post Type: podcast. HTML5 <audio> element with JS controls.\n'
+     +'Features: play/pause, progress bar, playback speed (1x/1.5x/2x), episode list.\n'
+     +'COMPLIANCE: Same Finance compliance rules apply to audio content. No guaranteed returns mentioned.'
+  },
+  {id:'sp-c', let:'C', name:'Mission 3-col',
+   dsc:'Educate · Research · Unlock — 3 column mission cards.',
+   wf:'sm',
+   prompt:'BLOCK B5-C — MISSION (WordPress + Tailwind)\n'
+     +'Section: py-16 bg-gray-900. grid md:grid-cols-3 gap-8.\n'
+     +'Cards: icon + H3 + 3-sentence description. Titles: Educate / Research / Unlock Value.\n'
+     +'COMPLIANCE: No unverifiable stats ("helped 50,000 investors"). No guaranteed outcome claims.'
+  },
+  {id:'sp-d', let:'D', name:'Deficit / Economic Meter',
+   dsc:'Animated counter for economic data widget.',
+   wf:'sd',
+   prompt:'BLOCK B5-D — DEFICIT METER (WordPress + Tailwind)\n'
+     +'Animated JS counter pulling from ACF options field. Gradient progress bar.\n'
+     +'Data attribution required: "Source: USDebtClock.org" or equivalent verified source.\n'
+     +'COMPLIANCE: All economic data must cite source and date. No fabricated numbers.'
+  },
+]};
+
+// ── FINANCE FOOTER ──
+SLOTS['ftr'] = {id:'ftr', num:'B6', ttl:'Footer', req:true, variants:[
+  {id:'ftr-a', let:'A', name:'Minimal compliance footer',
+   dsc:'Logo + nav links + copyright + mandatory disclaimer.',
+   wf:'fm',
+   prompt:'BLOCK B6-A — MINIMAL FOOTER (WordPress + Tailwind)\n'
+     +'footer.php. bg-gray-950 border-t border-gray-800 py-8 px-6.\n'
+     +'Row 1: Logo link (home_url()) + wp_nav_menu footer location + Copyright © <?=date(\'Y\')?> <?php bloginfo(\'name\')?>.\n'
+     +'Row 2: Disclaimer box (mandatory).\n'
+     +'COMPLIANCE MANDATORY:\n'
+     +'  Disclaimer text: "The information provided on this website is for general informational purposes\n'
+     +'  only and should not be construed as financial, investment, or legal advice. Past performance is\n'
+     +'  not indicative of future results. Investing involves risk, including the possible loss of principal."\n'
+     +'  Privacy Policy link — required (GDPR/CCPA)\n'
+     +'  Terms of Service link — required\n'
+     +'  Support email: support@{domain}.com'
+  },
+  {id:'ftr-b', let:'B', name:'Full compliance footer (Platoon)',
+   dsc:'3-col layout + cookie banner + full Platoon disclaimer. MANDATORY for Platoon sites.',
+   wf:'ff',
+   prompt:'BLOCK B6-B — FULL COMPLIANCE FOOTER [Platoon Required] (WordPress + Tailwind)\n'
+     +'grid md:grid-cols-3 bg-gray-900 py-10 px-6 border-t border-gray-800.\n'
+     +'Col 1: Logo + support email + physical address (74 E Glenwood Ave Smyrna DE 19977)\n'
+     +'Col 2: Navigation — About, Contact, Privacy Policy, Terms & Conditions, Unsubscribe\n'
+     +'Col 3: Copyright + disclaimer box\n'
+     +'Cookie Banner: fixed bottom, localStorage-based dismiss, required for Platoon.\n'
+     +'FULL DISCLAIMER (mandatory): "{Domain}.com, its managers, employees, and assigns\n'
+     +'do not make any guarantee or warranty about what is advertised above.\n'
+     +'Information provided by this website is for research purposes only and should not be\n'
+     +'considered as personalized financial advice. The Company is not affiliated with, nor\n'
+     +'does it receive compensation from, any specific security. Investing involves risk,\n'
+     +'including the possible loss of principal."'
+  },
+]};
+
+// ── BLOG SLOTS ──
+SLOTS['hero-blog'] = {id:'hero-blog', num:'B2', ttl:'Blog Hero', req:true, variants:[
+  {id:'bhero-a', let:'A', name:'Editorial featured post',
+   dsc:'Full-width hero featuring latest/sticky post.',
+   wf:'fg',
+   prompt:'BLOCK BLOG-HERO (WordPress + Tailwind)\n'
+     +'Full-width section with sticky or latest featured post.\n'
+     +'Large thumbnail (aspect-video) + category + H1 title + excerpt + author + date + Read More CTA.\n'
+     +'PHP: get_posts([\'numberposts\'=>1, \'tag\'=>\'featured\']) or sticky_posts.\n'
+     +'COMPLIANCE: Author must be real person or disclosed as "Editorial Team". Real publication dates only.'
+  },
+]};
+
+SLOTS['blogfeed'] = {id:'blogfeed', num:'B4', ttl:'Blog Feed', req:true, variants:[
+  {id:'bfeed-a', let:'A', name:'2-col editorial cards',
+   dsc:'Magazine-style 2-column article feed.',
+   wf:'ng',
+   prompt:'BLOCK BLOG-FEED (WordPress + Tailwind)\n'
+     +'grid md:grid-cols-2 gap-8. WP_Query paged, orderby=date.\n'
+     +'Each card: large thumbnail + category tag + H2 + 3-line excerpt + author avatar + date + estimated read time.\n'
+     +'COMPLIANCE: Author bios must be real. Read time can be estimated (words/200 wpm). No fabricated engagement metrics.'
+  },
+]};
+
+// ── FINANCE LANDING SLOTS (HTML5) ──
+SLOTS['fin-hero'] = {id:'fin-hero', num:'L1', ttl:'Hero Section', req:true, variants:[
+  {id:'fh-a', let:'A', name:'Centered — text + 2 CTAs',
+   dsc:'Full-screen centered: eyebrow + H1 + subtitle + 2 buttons. Clean focus.',
+   wf:'fg',
+   prompt:'BLOCK FIN-L1-A — HERO CENTERED (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="min-h-screen flex items-center justify-center text-center px-6 bg-[var(--background)]">\n'
+     +'  <div class="max-w-3xl mx-auto">\n'
+     +'    <span class="inline-block text-xs font-mono tracking-widest text-[var(--accent)] uppercase mb-6 px-4 py-1 border border-[var(--accent)]/40 rounded-full">Independent Financial Intelligence</span>\n'
+     +'    <h1 class="font-display text-5xl md:text-7xl font-black leading-none tracking-tight mb-6 text-[var(--textPrimary)]">Stay Ahead of Every Market Move</h1>\n'
+     +'    <p class="text-lg text-[var(--textMuted)] max-w-xl mx-auto mb-10 leading-relaxed">Daily market intelligence, independent analysis, no hype. Just facts.</p>\n'
+     +'    <div class="flex flex-col sm:flex-row gap-4 justify-center">\n'
+     +'      <a href="#subscribe" class="px-8 py-4 bg-[var(--accent)] text-white font-semibold rounded-lg hover:opacity-90 transition">Get Free Access</a>\n'
+     +'      <a href="#features" class="px-8 py-4 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/5 transition">See What\'s Inside</a>\n'
+     +'    </div>\n'
+     +'    <p class="text-xs text-[var(--textMuted)] mt-6 opacity-60">For informational purposes only. Not financial advice.</p>\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE: No guaranteed returns. No subscriber count unless verified.'
+  },
+  {id:'fh-b', let:'B', name:'Split — text left, visual right',
+   dsc:'Text + CTA left, dashboard mock/image right. Immersion Tech style.',
+   wf:'ns',
+   prompt:'BLOCK FIN-L1-B — HERO SPLIT (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="min-h-screen flex items-center px-6 md:px-16 bg-[var(--background)]">\n'
+     +'  <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center py-20">\n'
+     +'    <div>\n'
+     +'      <span class="text-xs font-mono tracking-widest text-[var(--accent)] uppercase mb-5 block">Financial News and Analysis</span>\n'
+     +'      <h1 class="font-display text-5xl md:text-6xl font-black leading-tight mb-6">The Market Intel You Actually Need</h1>\n'
+     +'      <p class="text-[var(--textMuted)] text-lg mb-8 leading-relaxed max-w-md">Independent coverage of stocks, crypto, and global markets. No sponsored content. Just objective reporting.</p>\n'
+     +'      <a href="#subscribe" class="inline-block px-8 py-4 bg-[var(--accent)] text-white font-semibold rounded-lg hover:opacity-90 transition mb-4">Subscribe Free</a>\n'
+     +'      <p class="text-xs text-[var(--textMuted)] opacity-60">Not financial advice. Unsubscribe anytime.</p>\n'
+     +'    </div>\n'
+     +'    <div class="relative">\n'
+     +'      <div class="rounded-2xl overflow-hidden border border-white/10">\n'
+     +'        <img src="https://picsum.photos/seed/financeapp/600/480" alt="Market dashboard" class="w-full h-auto" loading="lazy"/>\n'
+     +'      </div>\n'
+     +'    </div>\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE: Dashboard image is placeholder — replace with real or remove. No fabricated stats.'
+  },
+  {id:'fh-c', let:'C', name:'Fullscreen bold — bottom anchored',
+   dsc:'Dark fullscreen, giant H1 bottom-left, description right. TerraTranceTech style.',
+   wf:'fg',
+   prompt:'BLOCK FIN-L1-C — HERO FULLSCREEN BOLD (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="relative min-h-screen flex flex-col justify-end pb-16 px-6 md:px-16 overflow-hidden bg-black pt-14">\n'
+     +'  <div class="absolute inset-0 pointer-events-none opacity-5">\n'
+     +'    <div class="absolute top-1/3 right-1/4 w-96 h-96 rounded-full border border-white"></div>\n'
+     +'  </div>\n'
+     +'  <div class="max-w-7xl w-full mx-auto">\n'
+     +'    <p class="font-mono text-xs tracking-widest text-white/40 uppercase mb-6">Est. 2022 - Independent - Unbiased</p>\n'
+     +'    <div class="grid md:grid-cols-2 gap-8 items-end">\n'
+     +'      <h1 class="font-display font-black text-6xl md:text-8xl leading-none tracking-tight text-white">MARKET<br>INTEL<br>DAILY</h1>\n'
+     +'      <div>\n'
+     +'        <p class="text-white/60 text-lg leading-relaxed mb-8 max-w-sm">Real-time financial news and independent market commentary for the modern investor.</p>\n'
+     +'        <div class="flex gap-4">\n'
+     +'          <a href="#subscribe" class="px-8 py-4 bg-white text-black font-bold rounded-lg hover:bg-white/90 transition">Subscribe Free</a>\n'
+     +'          <a href="#about" class="px-8 py-4 border border-white/20 text-white font-bold rounded-lg hover:bg-white/5 transition">Learn More</a>\n'
+     +'        </div>\n'
+     +'      </div>\n'
+     +'    </div>\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE: No financial guarantees implied by bold typography.'
+  },
+  {id:'fh-d', let:'D', name:'Stats hero — metrics as trust signal',
+   dsc:'Large numbers (15M+, 45%, 150+) as social proof. Immersion style.',
+   wf:'fg',
+   prompt:'BLOCK FIN-L1-D — HERO WITH STATS (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="min-h-screen flex flex-col justify-center px-6 md:px-16 py-20">\n'
+     +'  <div class="max-w-6xl mx-auto w-full">\n'
+     +'    <h1 class="font-display font-black text-5xl md:text-7xl leading-tight mb-6 max-w-4xl">We Deliver Data-Backed Market Insights Daily</h1>\n'
+     +'    <p class="text-[var(--textMuted)] text-xl mb-12 max-w-2xl leading-relaxed">Independent financial news platform. No sponsored content, no conflicts of interest.</p>\n'
+     +'    <div class="grid grid-cols-3 gap-8 mb-12 max-w-xl">\n'
+     +'      <div><div class="font-display font-black text-4xl text-[var(--accent)]">[X]M+</div><div class="text-sm text-[var(--textMuted)] mt-1">Emails Sent Monthly</div></div>\n'
+     +'      <div><div class="font-display font-black text-4xl text-[var(--accent)]">[X]%</div><div class="text-sm text-[var(--textMuted)] mt-1">Avg. Open Rate Boost</div></div>\n'
+     +'      <div><div class="font-display font-black text-4xl text-[var(--accent)]">[X]+</div><div class="text-sm text-[var(--textMuted)] mt-1">Global Partners</div></div>\n'
+     +'    </div>\n'
+     +'    <a href="#subscribe" class="inline-block px-10 py-5 bg-[var(--accent)] text-white font-bold text-lg rounded-lg hover:opacity-90 transition">Get Free Access</a>\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE CRITICAL: Replace [X] placeholders with REAL verified numbers or REMOVE the stats section entirely. FTC Act Section 5 prohibits unverified social proof claims.'
+  },
+]};
+
+SLOTS['fin-process'] = {id:'fin-process', num:'L2', ttl:'Process / How It Works', req:false, variants:[
+  {id:'fp-a', let:'A', name:'Numbered steps vertical',
+   dsc:'01 02 03 04 numbered steps with descriptions.',
+   wf:'sm',
+   prompt:'BLOCK FIN-L2-A — PROCESS STEPS (HTML5 + Tailwind CDN)\n'
+     +'<section id="process" class="py-24 px-6 md:px-16">\n'
+     +'  <h2 class="font-display font-black text-4xl md:text-5xl mb-16 max-w-2xl">No guesswork, just a clear path to results.</h2>\n'
+     +'  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">\n'
+     +'    [Step 01] Research — Deep understanding of market context and audience.\n'
+     +'    [Step 02] Curate — We filter signal from noise in daily market data.\n'
+     +'    [Step 03] Publish — Daily briefings delivered to your inbox by 7AM.\n'
+     +'    [Step 04] Optimize — We track engagement and improve content continuously.\n'
+     +'  </div>\n'
+     +'</section>'
+  },
+  {id:'fp-b', let:'B', name:'Horizontal timeline',
+   dsc:'Horizontal steps connected by a line.',
+   wf:'sm',
+   prompt:'BLOCK FIN-L2-B — PROCESS TIMELINE (HTML5 + Tailwind CDN)\n'
+     +'Horizontal timeline with numbered circles connected by a horizontal line.\n'
+     +'4 steps: Subscribe -> Receive -> Read -> Act on insight.\n'
+     +'Responsive: stacks vertically on mobile.'
+  },
+]};
+
+SLOTS['fin-features'] = {id:'fin-features', num:'L3', ttl:'Features / Value Props', req:false, variants:[
+  {id:'ff-a', let:'A', name:'3-col icon cards',
+   dsc:'3 feature cards with icon, title, description.',
+   wf:'sm',
+   prompt:'BLOCK FIN-L3-A — FEATURES 3-COL (HTML5 + Tailwind CDN)\n'
+     +'<section id="features" class="py-24 px-6 md:px-16">\n'
+     +'  <div class="grid md:grid-cols-3 gap-8">\n'
+     +'    Card 1: Independent Analysis — Based only on publicly available data.\n'
+     +'    Card 2: Real-Time Coverage — Breaking news as it happens.\n'
+     +'    Card 3: Clear Language — No jargon, accessible for all investors.\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE: Feature claims must be factual and achievable. No guaranteed outcomes.'
+  },
+  {id:'ff-b', let:'B', name:'Alternating image + text rows',
+   dsc:'2-3 rows alternating: text left/image right, then flip.',
+   wf:'ns',
+   prompt:'BLOCK FIN-L3-B — FEATURES ALTERNATING (HTML5 + Tailwind CDN)\n'
+     +'2-3 section rows, each with text on one side and image on the other, alternating.\n'
+     +'Row 1: Market Coverage (text left, image right).\n'
+     +'Row 2: Newsletter Delivery (image left, text right).\n'
+     +'Images: picsum.photos placeholders. COMPLIANCE: Replace with real product screenshots.'
+  },
+]};
+
+SLOTS['fin-subscribe'] = {id:'fin-subscribe', num:'L4', ttl:'Subscribe CTA', req:true, variants:[
+  {id:'fs-a', let:'A', name:'Full-width centered form',
+   dsc:'Large centered email capture with compliance opt-in.',
+   wf:'ni',
+   prompt:'BLOCK FIN-L4-A — SUBSCRIBE CTA (HTML5 + Tailwind CDN)\n'
+     +'<section id="subscribe" class="py-24 px-6 md:px-16">\n'
+     +'  <div class="max-w-2xl mx-auto text-center">\n'
+     +'    <h2 class="font-display font-black text-4xl md:text-5xl mb-4">Stay Informed. Stay Ahead.</h2>\n'
+     +'    <p class="text-[var(--textMuted)] text-lg mb-8">Free daily financial briefing. Unsubscribe anytime.</p>\n'
+     +'    <form class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">\n'
+     +'      <input type="email" placeholder="Your email address" required/>\n'
+     +'      <button type="submit">Subscribe Free</button>\n'
+     +'    </form>\n'
+     +'    <!-- COMPLIANCE MANDATORY -->\n'
+     +'    <label class="flex items-start gap-2 mt-4 text-left max-w-md mx-auto">\n'
+     +'      <input type="checkbox" id="optin"/> <!-- MUST be unchecked by default -->\n'
+     +'      <span class="text-xs text-[var(--textMuted)]">I agree to receive email updates. <a href="/privacy-policy">Privacy Policy</a></span>\n'
+     +'    </label>\n'
+     +'    <p class="text-xs opacity-50 mt-3">Not financial advice. For informational purposes only.</p>\n'
+     +'  </div>\n'
+     +'</section>\n'
+     +'COMPLIANCE MANDATORY: Checkbox unchecked by default (GDPR/CCPA/CAN-SPAM violation if pre-checked).'
+  },
+  {id:'fs-b', let:'B', name:'Split dark banner',
+   dsc:'Benefits left, form right. Dark background.',
+   wf:'ns',
+   prompt:'BLOCK FIN-L4-B — SUBSCRIBE SPLIT (HTML5 + Tailwind CDN)\n'
+     +'Two-column: left = headline + 3 bullet benefits, right = email form.\n'
+     +'Benefits: Daily briefing / Independent analysis / Zero friction unsubscribe.\n'
+     +'COMPLIANCE: Checkbox unchecked. No guaranteed outcome language in benefits.'
+  },
+]};
+
+SLOTS['fin-about'] = {id:'fin-about', num:'L5', ttl:'About / Mission', req:false, variants:[
+  {id:'fa-a', let:'A', name:'Split — text + image',
+   dsc:'Mission text left, team photo or illustration right.',
+   wf:'ns',
+   prompt:'BLOCK FIN-L5-A — ABOUT SPLIT (HTML5 + Tailwind CDN)\n'
+     +'Two-column layout: editorial manifesto left, team photo or abstract visual right.\n'
+     +'Content: who we are, editorial independence, what we cover, contact.\n'
+     +'COMPLIANCE: Team photos must be real if claiming real team. No stock photos presented as team.'
+  },
+  {id:'fa-b', let:'B', name:'Stats row — metrics',
+   dsc:'4 key numbers as trust signals.',
+   wf:'sm',
+   prompt:'BLOCK FIN-L5-B — STATS ROW (HTML5 + Tailwind CDN)\n'
+     +'4-col grid: [X] Years / [X]% Open Rate / [X]k+ Readers / [X] Daily Articles.\n'
+     +'COMPLIANCE CRITICAL: ALL numbers are MOCK DATA. Replace with real verified statistics or remove entirely.'
+  },
+]};
+
+// ── SUBSCRIPTION SLOTS ──
+SLOTS['sub-hero'] = {id:'sub-hero', num:'S1', ttl:'Subscription Hero', req:true, variants:[
+  {id:'sh-a', let:'A', name:'Centered value + form',
+   dsc:'Single strong headline + email form centered.',
+   wf:'ni',
+   prompt:'BLOCK SUB-S1-A — SUBSCRIPTION HERO CENTERED (HTML5 + Tailwind CDN)\n'
+     +'Full-screen centered: headline + subtitle + email form.\n'
+     +'COMPLIANCE: Checkbox unchecked by default. No pre-checked consent. No fabricated counts.'
+  },
+  {id:'sh-b', let:'B', name:'Split — benefits left, form right',
+   dsc:'Benefits checklist left, signup form right.',
+   wf:'ns',
+   prompt:'BLOCK SUB-S1-B — SUBSCRIPTION HERO SPLIT (HTML5 + Tailwind CDN)\n'
+     +'Two-column: benefit list (checkmarks) left, signup form right.\n'
+     +'COMPLIANCE: Checkbox unchecked. Benefits must not promise guaranteed results.'
+  },
+]};
+
+SLOTS['sub-props'] = {id:'sub-props', num:'S2', ttl:'Value Props', req:true, variants:[
+  {id:'sp-a', let:'A', name:'3-col benefit cards',
+   dsc:'3 reasons to subscribe with icons.',
+   wf:'sm',
+   prompt:'BLOCK SUB-S2-A — VALUE PROPS (HTML5 + Tailwind CDN)\n'
+     +'3 cards: Time efficient (5 min daily) / Zero bias (no sponsors) / Easy exit (unsubscribe anytime).\n'
+     +'COMPLIANCE: No guaranteed financial outcomes promised as benefits.'
+  },
+]};
+
+SLOTS['sub-testimonials'] = {id:'sub-testimonials', num:'S3', ttl:'Testimonials', req:false, variants:[
+  {id:'st-a', let:'A', name:'Quote cards',
+   dsc:'3 reader quotes with names.',
+   wf:'ng',
+   prompt:'BLOCK SUB-S3-A — TESTIMONIALS (HTML5 + Tailwind CDN)\n'
+     +'3-col quote cards with quote text + name + role.\n'
+     +'COMPLIANCE MANDATORY (FTC Endorsement Guides 2023):\n'
+     +'  - All testimonials must be from real verified subscribers\n'
+     +'  - If compensated: "This individual was compensated for their testimonial"\n'
+     +'  - No stock photos as testimonial authors\n'
+     +'  - No fabricated names or titles\n'
+     +'  - Add disclaimer: "Individual results may vary."'
+  },
+]};
+
+// ══════════════════════════════════════════════════
+// MARKETING SLOTS
+// ══════════════════════════════════════════════════
+SLOTS['mkt-hdr'] = {id:'mkt-hdr', num:'M1', ttl:'Header / Nav', req:true, variants:[
+  {id:'mh-a', let:'A', name:'Transparent → solid on scroll',
+   dsc:'Transparent header becomes dark on scroll. Anchor links. CTA button.',
+   wf:'hn',
+   prompt:'BLOCK MKT-M1-A — HEADER TRANSPARENT-SCROLL (HTML5 + Tailwind CDN)\n'
+     +'<header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">\n'
+     +'  Logo anchor (#hero) + anchor nav links + "Get in Touch" CTA button.\n'
+     +'  Mobile: hamburger toggle.\n'
+     +'</header>\n'
+     +'Vanilla JS: window.addEventListener("scroll", ...) sets background: rgba(0,0,0,0.95) when scrollY > 60.\n'
+     +'COMPLIANCE: No "#1 Agency" or "Award-Winning" claims without verified proof.'
+  },
+  {id:'mh-b', let:'B', name:'Dark solid + numbered menu',
+   dsc:'Always dark. Numbered items: 01 Services / 02 Process / 03 About. LeoBurnett style.',
+   wf:'ht',
+   prompt:'BLOCK MKT-M1-B — HEADER DARK NUMBERED (HTML5 + Tailwind CDN)\n'
+     +'Fixed dark header, bg-black border-b border-white/10.\n'
+     +'Nav items with number prefixes: "01 Services" "02 Process" "03 About" "04 Insights".\n'
+     +'Font: font-mono text-xs tracking-widest uppercase.\n'
+     +'Inspired by: LeoBurnett.com numbered menu style.\n'
+     +'COMPLIANCE: No fabricated credentials in header.'
+  },
+]};
+
+SLOTS['mkt-hero'] = {id:'mkt-hero', num:'M2', ttl:'Hero Section', req:true, variants:[
+  {id:'mhro-a', let:'A', name:'Fullscreen — text bottom-anchored',
+   dsc:'Dark fullscreen. Giant headline bottom-left. Description + CTAs bottom-right. TerraTranceTech.',
+   wf:'fg',
+   prompt:'BLOCK MKT-M2-A — HERO FULLSCREEN BOTTOM-ANCHOR (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="relative min-h-screen flex flex-col justify-end pb-16 px-6 md:px-16 overflow-hidden bg-black pt-14">\n'
+     +'  Subtle background: faint concentric circles (border border-white/5 rounded-full absolute).\n'
+     +'  Bottom grid md:grid-cols-2:\n'
+     +'    Left: eyebrow label (font-mono) + H1 6xl-9xl font-black text-white\n'
+     +'    Right: description + 2 CTA buttons\n'
+     +'  Scroll indicator: vertical line + SCROLL text, absolute bottom-center.\n'
+     +'  Inspired by: TerraTranceTechnologies.com layout.\n'
+     +'  Example H1: "WE BUILD DIGITAL EXPERIENCES"\n'
+     +'COMPLIANCE: No fabricated awards or rankings in hero.'
+  },
+  {id:'mhro-b', let:'B', name:'Split — text left, image right',
+   dsc:'Headline + CTAs left, agency visual right with floating stat badges.',
+   wf:'ns',
+   prompt:'BLOCK MKT-M2-B — HERO SPLIT (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="min-h-screen flex items-center bg-black px-6 md:px-16 pt-14">\n'
+     +'  Left: eyebrow text + H1 5xl-7xl + description + 2 CTA buttons.\n'
+     +'  Right: agency photo/visual with 2 floating stat badges (dark card, absolute positioned).\n'
+     +'  Inspired by: getimmersiontech.com split layout.\n'
+     +'COMPLIANCE: Stat badges (150+, 45%) are MOCK DATA — replace with real verified numbers or remove.'
+  },
+  {id:'mhro-c', let:'C', name:'Centered tagline — minimal',
+   dsc:'One powerful line, centered. Minimal. Ogilvy/McCann/Mindshare style.',
+   wf:'fg',
+   prompt:'BLOCK MKT-M2-C — HERO CENTERED MINIMAL (HTML5 + Tailwind CDN)\n'
+     +'<section id="hero" class="min-h-screen flex items-center justify-center text-center bg-black px-6 pt-14">\n'
+     +'  Eyebrow: small mono label.\n'
+     +'  H1: single bold statement, 6xl-9xl, font-black.\n'
+     +'  Subtext: 1-2 sentence description, max-w-md, centered.\n'
+     +'  CTAs: 2 buttons centered.\n'
+     +'  Inspired by: Ogilvy.com and McCann.com minimal hero approach.\n'
+     +'COMPLIANCE: Tagline must be factual. No misleading superlatives.'
+  },
+]};
+
+SLOTS['mkt-stats'] = {id:'mkt-stats', num:'M3', ttl:'Stats / Numbers Row', req:false, variants:[
+  {id:'ms-a', let:'A', name:'4-col counter row',
+   dsc:'4 large numbers in a row. Immersion Technologies style.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M3-A — STATS ROW (HTML5 + Tailwind CDN)\n'
+     +'Border-y border-white/10 section, py-16.\n'
+     +'4-col grid: [X]M+ Emails Sent / [X]% Open Rate Boost / [X]+ Partners / [X] Years Experience.\n'
+     +'Large font-display font-black numbers.\n'
+     +'COMPLIANCE CRITICAL: ALL numbers are MOCK PLACEHOLDERS.\n'
+     +'Replace [X] with real verified stats, or remove this block entirely.\n'
+     +'Unverified social proof = FTC Act Section 5 violation.'
+  },
+  {id:'ms-b', let:'B', name:'Inline stats inside hero',
+   dsc:'Stats embedded below hero headline. TerraTranceTech style.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M3-B — STATS INLINE IN HERO (HTML5 + Tailwind CDN)\n'
+     +'Placed inside the hero section, below the headline.\n'
+     +'3 inline stat items: [X]+ Years / [X]% Return Rate / [X]+ Clients.\n'
+     +'COMPLIANCE: Replace all [X] with real numbers or remove.'
+  },
+]};
+
+SLOTS['mkt-services'] = {id:'mkt-services', num:'M4', ttl:'Services', req:true, variants:[
+  {id:'msvc-a', let:'A', name:'4-col icon cards',
+   dsc:'4 service cards with icon + title + description.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M4-A — SERVICES 4-COL (HTML5 + Tailwind CDN)\n'
+     +'Section: bg-black py-24. Heading: "Not just services — we deliver growth."\n'
+     +'4-col grid: Strategy / Design / Growth / Automation.\n'
+     +'Each card: border border-white/10 rounded-2xl p-8 + icon circle + h3 + description.\n'
+     +'Hover: border-color transition to border-white/30.\n'
+     +'NO portfolio section — services only, no case study showcase.'
+  },
+  {id:'msvc-b', let:'B', name:'Alternating rows — service deep dives',
+   dsc:'2-3 alternating image/text rows per service.',
+   wf:'ns',
+   prompt:'BLOCK MKT-M4-B — SERVICES ALTERNATING (HTML5 + Tailwind CDN)\n'
+     +'3 sections, each border-t border-white/10 py-20.\n'
+     +'Alternating layout: text+image, image+text, text+image.\n'
+     +'Services: Email Marketing / Web Development / Brand Strategy.\n'
+     +'Images: picsum.photos placeholders with relevant seeds.\n'
+     +'NO portfolio — focus on service capabilities, not case studies.'
+  },
+  {id:'msvc-c', let:'C', name:'Vertical list — corporate minimal',
+   dsc:'Services as numbered list items with arrow. Mindshare/Accenture style.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M4-C — SERVICES LIST (HTML5 + Tailwind CDN)\n'
+     +'Two-column: left = section heading, right = numbered service list.\n'
+     +'Each row: divide-y border. Number + service name + arrow icon.\n'
+     +'Hover: left padding slide + color change.\n'
+     +'Services: Email Marketing / Web Design / Brand Strategy / Content / Analytics / CRM.\n'
+     +'Inspired by: Mindshare and Accenture minimal service listing approach.'
+  },
+]};
+
+SLOTS['mkt-process'] = {id:'mkt-process', num:'M5', ttl:'Process', req:false, variants:[
+  {id:'mprc-a', let:'A', name:'Numbered vertical 01-04',
+   dsc:'01/02/03/04 steps with titles and descriptions. TerraTranceTech.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M5-A — PROCESS NUMBERED (HTML5 + Tailwind CDN)\n'
+     +'<section id="process" class="py-24 px-6 md:px-16 bg-neutral-950">\n'
+     +'  Eyebrow: "[01 Process]" in font-mono uppercase.\n'
+     +'  Heading: "No guesswork, just a clear path from ideas to results."\n'
+     +'  4-col grid:\n'
+     +'    01. Research — Deep understanding of business and market.\n'
+     +'    02. Design — Insights into creative concepts and direction.\n'
+     +'    03. Implementation — Execution with iteration and precision.\n'
+     +'    04. Testing — Results analysis and continuous improvement.\n'
+     +'  Inspired by: TerraTranceTechnologies numbered process section.'
+  },
+  {id:'mprc-b', let:'B', name:'Horizontal timeline',
+   dsc:'Steps connected by a horizontal line. Deloitte/Accenture corporate style.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M5-B — PROCESS TIMELINE (HTML5 + Tailwind CDN)\n'
+     +'Horizontal line (absolute, top-center) with 4 numbered circles above/on it.\n'
+     +'4 steps: Discovery & Strategy / Creative Development / Execution & Launch / Optimization.\n'
+     +'Responsive: stacks to vertical on mobile.\n'
+     +'Inspired by: Deloitte Digital and Accenture process visualization.'
+  },
+]};
+
+SLOTS['mkt-about'] = {id:'mkt-about', num:'M6', ttl:'About / Team', req:false, variants:[
+  {id:'mabt-a', let:'A', name:'Split — manifesto + photo',
+   dsc:'Agency manifesto text left, team photo right. TerraTranceTech.',
+   wf:'ns',
+   prompt:'BLOCK MKT-M6-A — ABOUT SPLIT (HTML5 + Tailwind CDN)\n'
+     +'Section bg-black py-24. Eyebrow "[03 About]".\n'
+     +'Left: H2 "Creative minds. Real humans. One tight-knit team." + 2 paragraphs + CTA button.\n'
+     +'Right: rounded-2xl overflow-hidden team photo (picsum.photos/seed/team/640/520).\n'
+     +'Inspired by: TerraTranceTechnologies about section.\n'
+     +'COMPLIANCE: Team photo must be real if presented as real team. No stock photos claiming to be the team.'
+  },
+  {id:'mabt-b', let:'B', name:'Full-width manifesto — dark',
+   dsc:'Full-width centered bold quote/manifesto statement. Mindshare style.',
+   wf:'fg',
+   prompt:'BLOCK MKT-M6-B — ABOUT MANIFESTO (HTML5 + Tailwind CDN)\n'
+     +'Full-width dark section py-32. Centered content.\n'
+     +'Large blockquote: "We are [agency description] united by our desire to drive good growth for our clients."\n'
+     +'Subtext paragraph below.\n'
+     +'Inspired by: Mindshare "Global Media Agency Network" statement style.'
+  },
+]};
+
+SLOTS['mkt-clients'] = {id:'mkt-clients', num:'M7', ttl:'Clients / Brand Logos', req:false, variants:[
+  {id:'mcli-a', let:'A', name:'Marquee — infinite scroll',
+   dsc:'Infinitely scrolling client logo marquee strip.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M7-A — CLIENTS MARQUEE (HTML5 + Tailwind CDN)\n'
+     +'Section py-16 bg-black border-y border-white/10 overflow-hidden.\n'
+     +'Two rows of logo/brand name items. CSS animation: translateX(-50%) infinite.\n'
+     +'Content: duplicated list for seamless loop.\n'
+     +'@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }\n'
+     +'COMPLIANCE: Only real client names with permission. No fabricated brand associations.'
+  },
+  {id:'mcli-b', let:'B', name:'Static logo grid',
+   dsc:'Static 3x2 or 4x2 logo grid.',
+   wf:'sm',
+   prompt:'BLOCK MKT-M7-B — CLIENTS GRID (HTML5 + Tailwind CDN)\n'
+     +'Grid grid-cols-3 md:grid-cols-6 gap-8. Brand names or logo placeholders.\n'
+     +'COMPLIANCE: Replace placeholders with real client names (with permission) or remove block entirely.'
+  },
+]};
+
+SLOTS['mkt-news'] = {id:'mkt-news', num:'M8', ttl:'News / Insights', req:false, variants:[
+  {id:'mnws-a', let:'A', name:'3-col insight cards',
+   dsc:'3 latest insight/blog article cards. TerraTranceTech news style.',
+   wf:'ng',
+   prompt:'BLOCK MKT-M8-A — INSIGHTS (HTML5 + Tailwind CDN)\n'
+     +'Section bg-neutral-950 py-24. Eyebrow "[04 Insights]".\n'
+     +'Heading + "View all" link right-aligned.\n'
+     +'3-col article cards: aspect-video image + category badge + H3 title + read time.\n'
+     +'Image hover: scale-105 transition + opacity increase.\n'
+     +'Links: /blog/ or /insights/ anchor.\n'
+     +'COMPLIANCE: All article titles must be real published content. No fabricated headlines.'
+  },
+]};
+
+SLOTS['mkt-contact'] = {id:'mkt-contact', num:'M9', ttl:'Contact / Final CTA', req:true, variants:[
+  {id:'mctc-a', let:'A', name:'Full-screen split form',
+   dsc:'Left: large CTA headline. Right: contact form. Immersion style.',
+   wf:'ni',
+   prompt:'BLOCK MKT-M9-A — CONTACT SPLIT (HTML5 + Tailwind CDN)\n'
+     +'Section bg-black py-32 px-6 md:px-16.\n'
+     +'2-col grid:\n'
+     +'  Left: Eyebrow + H2 "Ready to Scale Your Impact?" + description + contact details.\n'
+     +'  Right: Form with name + email + message + submit button.\n'
+     +'  Form note: "By submitting you agree to our Privacy Policy."\n'
+     +'Inspired by: getimmersiontech.com contact section.\n'
+     +'COMPLIANCE: Form must not make guarantees about results. Data collection requires Privacy Policy link.'
+  },
+  {id:'mctc-b', let:'B', name:'Centered minimal CTA',
+   dsc:'Simple centered headline + email link or CTA button.',
+   wf:'ni',
+   prompt:'BLOCK MKT-M9-B — CONTACT MINIMAL (HTML5 + Tailwind CDN)\n'
+     +'Section bg-neutral-950 py-32 text-center.\n'
+     +'H2: "Your brand deserves better. Let\'s build it right."\n'
+     +'Subtext + mailto link or CTA button.\n'
+     +'Inspired by: TerraTranceTechnologies minimal footer CTA style.'
+  },
+]};
+
+SLOTS['mkt-ftr'] = {id:'mkt-ftr', num:'M10', ttl:'Footer', req:true, variants:[
+  {id:'mft-a', let:'A', name:'Dark minimal + legal',
+   dsc:'Agency name, address, email, nav links, copyright, brief disclaimer.',
+   wf:'fm',
+   prompt:'BLOCK MKT-M10-A — MARKETING FOOTER (HTML5 + Tailwind CDN)\n'
+     +'<footer class="bg-black border-t border-white/10 py-12 px-6 md:px-16">\n'
+     +'  Row 1: Agency name + address + support email | anchor nav | social links.\n'
+     +'  Row 2: Copyright + brief disclaimer.\n'
+     +'  Nav: Services, Process, About, Insights, Privacy, Terms.\n'
+     +'  Disclaimer: "This website is for informational purposes only. Results may vary."\n'
+     +'  Required links: Privacy Policy page + Terms page (must be real documents).\n'
+     +'COMPLIANCE:\n'
+     +'  - NO "Award-Winning Agency" without verified proof\n'
+     +'  - Privacy Policy and Terms must be real, accessible documents\n'
+     +'  - Contact email must be real and functional\n'
+     +'  - Physical address if claimed must be accurate'
+  },
+]};
+
+// ── Marketing Blog slots ──
+SLOTS['mkt-blog-hero'] = {id:'mkt-blog-hero', num:'MB1', ttl:'Blog Hero', req:true, variants:[
+  {id:'mbh-a', let:'A', name:'Editorial fullscreen',
+   dsc:'Large editorial header for agency insights page.',
+   wf:'fg',
+   prompt:'BLOCK MKT-MB1-A — AGENCY BLOG HERO (HTML5 + Tailwind CDN)\n'
+     +'pt-28 pb-20 bg-black. Max-w-7xl.\n'
+     +'Eyebrow "Insights & News" + H1 "Digital Trends & Expert Perspectives".\n'
+     +'No featured article in hero — just editorial heading.'
+  },
+]};
+
+SLOTS['mkt-blog-feed'] = {id:'mkt-blog-feed', num:'MB2', ttl:'Article Feed', req:true, variants:[
+  {id:'mbf-a', let:'A', name:'2-col dark editorial',
+   dsc:'2-column article grid with category, title, excerpt.',
+   wf:'ng',
+   prompt:'BLOCK MKT-MB2-A — AGENCY BLOG FEED (HTML5 + Tailwind CDN)\n'
+     +'grid md:grid-cols-2 gap-10. Articles: border-b border-white/10 pb-10.\n'
+     +'Each: aspect-video image + category tag + H2 + excerpt + date.\n'
+     +'COMPLIANCE: All article content must be real. No fabricated bylines.'
+  },
+]};
+
+// ── Marketing Subscription slots ──
+SLOTS['mkt-sub-hero'] = {id:'mkt-sub-hero', num:'MS1', ttl:'Subscription Hero', req:true, variants:[
+  {id:'msh-a', let:'A', name:'Centered lead capture',
+   dsc:'Dark centered email subscription with compliance opt-in.',
+   wf:'ni',
+   prompt:'BLOCK MKT-MS1-A — AGENCY SUBSCRIPTION HERO (HTML5 + Tailwind CDN)\n'
+     +'min-h-screen centered. H1 "Digital trends worth reading."\n'
+     +'Email form + unchecked consent checkbox + Privacy Policy link.\n'
+     +'COMPLIANCE: Checkbox MUST be unchecked by default. GDPR/CCPA/CAN-SPAM.'
+  },
+]};
+
+SLOTS['mkt-sub-props'] = {id:'mkt-sub-props', num:'MS2', ttl:'Value Props', req:true, variants:[
+  {id:'msp-a', let:'A', name:'3-col dark cards',
+   dsc:'3 reasons to subscribe to the agency newsletter.',
+   wf:'sm',
+   prompt:'BLOCK MKT-MS2-A — VALUE PROPS (HTML5 + Tailwind CDN)\n'
+     +'3-col grid: Expert Curation / Weekly Cadence / Zero Spam.\n'
+     +'Dark cards with icon + title + description.'
+  },
+]};
+
+SLOTS['mkt-sub-testimonials'] = {id:'mkt-sub-testimonials', num:'MS3', ttl:'Testimonials', req:false, variants:[
+  {id:'mst-a', let:'A', name:'Quote cards',
+   dsc:'3 client/reader quotes.',
+   wf:'ng',
+   prompt:'BLOCK MKT-MS3-A — TESTIMONIALS (HTML5 + Tailwind CDN)\n'
+     +'3 quote cards on dark bg. Quote + name + role.\n'
+     +'COMPLIANCE: Real verified quotes only. Disclose compensation if paid (FTC 2023).'
+  },
+]};
+
+// ══════════════════════════════════════════════════
+// WIREFRAMES
+// ══════════════════════════════════════════════════
+var WF = {
+  hn:'<div class="wf"><div class="wnav"><div class="wlog"></div><div class="wni"><div></div><div></div><div></div></div></div><div style="font-size:7px;color:var(--m1)">sticky nav</div></div>',
+  ht:'<div class="wf"><div class="wnav"><div class="wlog"></div><div class="wni"><div></div><div></div></div></div><div style="height:11px;background:linear-gradient(90deg,#4f8eff18,#7c5cfc18);border-radius:2px;margin-top:4px;font-size:7px;color:var(--m1);display:flex;align-items:center;padding:0 4px;">BREAKING ████ →</div></div>',
+  fg:'<div class="wf"><div style="display:grid;grid-template-columns:1.6fr 1fr;gap:3px"><div class="wb" style="height:56px;border-radius:3px;background:var(--bd)"></div><div style="display:flex;flex-direction:column;gap:2px"><div class="wb" style="height:26px;border-radius:2px;background:var(--bd)"></div><div class="wb" style="height:26px;border-radius:2px;background:var(--bd)"></div></div></div></div>',
+  ft:'<div class="wf"><div style="display:flex;gap:4px;margin-bottom:3px"><div style="height:9px;width:40px;background:var(--ac);border-radius:2px;opacity:.7"></div><div style="height:9px;width:40px;background:var(--bd);border-radius:2px;"></div></div><div style="height:44px;background:var(--s3);border-radius:3px;"></div></div>',
+  ni:'<div class="wf"><div style="background:var(--s2);border-radius:3px;padding:5px;display:flex;gap:3px;align-items:center;"><div style="flex:1"><div class="wln"></div><div class="wln" style="width:70%"></div></div><div style="display:flex;gap:3px"><div class="wb" style="width:70px;height:12px;background:var(--bd)"></div><div class="wb" style="width:46px;height:12px;background:var(--ac);opacity:.5"></div></div></div></div>',
+  nc:'<div class="wf" style="text-align:center"><div style="width:24px;height:24px;background:var(--ac);opacity:.3;border-radius:50%;margin:0 auto 4px"></div><div class="wln" style="width:60%;margin:0 auto 3px"></div><div style="display:flex;gap:3px;justify-content:center"><div class="wb" style="width:90px;height:12px;background:var(--bd)"></div><div class="wb" style="width:46px;height:12px;background:var(--ac);opacity:.5"></div></div></div>',
+  ng:'<div class="wf"><div class="w3">'
+    +'<div class="wcard"><div class="wb" style="height:24px;width:100%;border-radius:2px;margin-bottom:3px;background:var(--bd)"></div><div class="wtag"></div><div class="wln" style="margin-top:2px"></div></div>'
+    +'<div class="wcard"><div class="wb" style="height:24px;width:100%;border-radius:2px;margin-bottom:3px;background:var(--bd)"></div><div class="wtag"></div><div class="wln" style="margin-top:2px"></div></div>'
+    +'<div class="wcard"><div class="wb" style="height:24px;width:100%;border-radius:2px;margin-bottom:3px;background:var(--bd)"></div><div class="wtag"></div><div class="wln" style="margin-top:2px"></div></div>'
+    +'</div></div>',
+  ns:'<div class="wf"><div style="display:grid;grid-template-columns:1fr .32fr;gap:3px">'
+    +'<div><div style="display:flex;gap:3px;margin-bottom:3px"><div class="wb" style="width:40px;height:26px;background:var(--bd)"></div><div style="flex:1"><div class="wln"></div><div class="wln" style="width:70%"></div></div></div>'
+    +'<div style="display:flex;gap:3px"><div class="wb" style="width:40px;height:26px;background:var(--bd)"></div><div style="flex:1"><div class="wln"></div><div class="wln" style="width:60%"></div></div></div></div>'
+    +'<div><div class="wln" style="margin-bottom:3px"></div><div class="wln" style="margin-bottom:3px"></div><div class="wln"></div></div></div></div>',
+  sr:'<div class="wf"><div style="font-size:7px;color:var(--red);margin-bottom:3px;font-weight:bold">🚩 Red Flags</div><div class="w2" style="gap:2px">'
+    +'<div style="height:12px;background:#f0c04028;border-radius:2px;font-size:6px;display:flex;align-items:center;padding:0 3px;color:var(--gold)">1.██</div>'
+    +'<div style="height:12px;background:#f0c04028;border-radius:2px;font-size:6px;display:flex;align-items:center;padding:0 3px;color:var(--gold)">2.██</div>'
+    +'<div style="height:12px;background:#f0c04028;border-radius:2px;font-size:6px;display:flex;align-items:center;padding:0 3px;color:var(--gold)">3.██</div>'
+    +'<div style="height:12px;background:#f0c04028;border-radius:2px;font-size:6px;display:flex;align-items:center;padding:0 3px;color:var(--gold)">4.██</div>'
+    +'</div></div>',
+  sp:'<div class="wf"><div style="display:flex;gap:3px;align-items:center;background:var(--bd);border-radius:2px;padding:2px 4px;margin-bottom:2px"><div style="width:10px;height:10px;background:var(--ac);border-radius:50%;opacity:.6;flex-shrink:0"></div><div class="wln" style="flex:1;margin:0"></div></div><div style="display:flex;gap:3px;align-items:center;background:var(--bd);border-radius:2px;padding:2px 4px"><div style="width:10px;height:10px;background:var(--bd2);border-radius:50%;opacity:.6;flex-shrink:0"></div><div class="wln" style="flex:1;margin:0"></div></div></div>',
+  sm:'<div class="wf"><div class="w3"><div class="wcard" style="text-align:center"><div style="width:14px;height:14px;background:var(--ac);opacity:.3;border-radius:50%;margin:0 auto 3px;"></div><div style="font-size:7px;color:var(--m1)">01</div></div><div class="wcard" style="text-align:center"><div style="width:14px;height:14px;background:var(--ac);opacity:.3;border-radius:50%;margin:0 auto 3px;"></div><div style="font-size:7px;color:var(--m1)">02</div></div><div class="wcard" style="text-align:center"><div style="width:14px;height:14px;background:var(--ac);opacity:.3;border-radius:50%;margin:0 auto 3px;"></div><div style="font-size:7px;color:var(--m1)">03</div></div></div></div>',
+  sd:'<div class="wf"><div style="font-size:7px;color:var(--gold);margin-bottom:3px">⚖ Meter</div><div style="height:6px;background:var(--bd);border-radius:3px;overflow:hidden"><div style="width:60%;height:100%;background:linear-gradient(90deg,var(--grn),var(--gold),var(--red));"></div></div></div>',
+  fm:'<div class="wf"><div style="display:flex;align-items:center;gap:3px;margin-bottom:4px"><div class="wlog"></div><div class="wni" style="margin:auto"><div></div><div></div><div></div></div></div><div class="wln" style="width:50%;opacity:.25"></div></div>',
+  ff:'<div class="wf"><div class="w3" style="margin-bottom:4px"><div><div class="wln" style="margin-bottom:2px"></div><div class="wln" style="width:65%;"></div></div><div><div class="wln" style="margin-bottom:2px"></div><div class="wln" style="width:65%;"></div></div><div><div class="wln" style="margin-bottom:2px"></div><div class="wln" style="width:65%;"></div></div></div><div style="background:var(--bd);border-radius:2px;padding:3px;"><div class="wln" style="margin-bottom:1px"></div><div class="wln" style="width:75%"></div></div></div>',
+};
+
+// ══════════════════════════════════════════════════
+// DOMAINS (Finance only)
+// ══════════════════════════════════════════════════
+var DOMAINS = [
+  {id:'trt',name:'TheRiskTolerance',url:'therisktolerance.com',pc:'Alpha One',color:'#4f8eff',sub:'Investing & Stock News · AO',
+   ctx:'Finance news site. Alpha One features: podcast, crypto widget, heatmap, economic calendar, Red Flags widget.'},
+  {id:'mnvx',name:'Monevex',url:'monevex.com',pc:'Alpha One',color:'#4f8eff',sub:'Business News · AO',
+   ctx:'Business news with podcast. Covers markets, crypto, economy. Red Flags widget required.'},
+  {id:'egr',name:'EasyGoldRetirement',url:'easygoldretirement.com',pc:'Alpha One',color:'#4f8eff',sub:'Gold & Retirement · AO',
+   ctx:'Retirement-focused. Gold investing, precious metals, pension planning.'},
+  {id:'ngz',name:'NewGrowthZones',url:'newgrowthzones.com',pc:'OG',color:'#f0c040',sub:'Finance + Sport · OG',
+   ctx:'Mixed finance and sports news. Federal Budget Breakdown page.'},
+  {id:'ifw',name:'InsightfulWord',url:'insightfulword.com',pc:'OG',color:'#f0c040',sub:'Finance + Insights · OG',
+   ctx:'Finance news. Global Trade, Gas Prices, Forecast sections.'},
+  {id:'dfb',name:'DailyFinBrief',url:'dailyfinbrief.com',pc:'OG',color:'#f0c040',sub:'Daily Finance Brief · OG',
+   ctx:'Daily finance. Breaking! banner, Deficit Meter, "What if?" section.'},
+  {id:'str',name:'SafeTradeReport',url:'safetradereport.com',pc:'Platoon',color:'#7c5cfc',sub:'Safe Trading · Platoon',
+   ctx:'Finance site. Platoon compliance: cookie banner MANDATORY, physical address required.'},
+  {id:'pk',name:'PortfolioKeys',url:'portfoliokeys.com',pc:'Platoon',color:'#7c5cfc',sub:'Portfolio & Investing · Platoon',
+   ctx:'Investing news. Platoon compliance mandatory.'},
+  {id:'ibt',name:'InvestorBizTalk',url:'investorbusinesstalk.com',pc:'Platoon',color:'#7c5cfc',sub:'Investor Business Talk · Platoon',
+   ctx:'Finance and crypto news. Sidebar: Recent Posts and Popular This Week.'},
+];
+
+// ══════════════════════════════════════════════════
+// CONTENT TYPES
+// ══════════════════════════════════════════════════
+var CONTENT_TYPES = [
+  {id:'article',lbl:'📰 Article'},
+  {id:'headline',lbl:'🎯 Headlines x5'},
+  {id:'meta',lbl:'🏷 Meta SEO'},
+  {id:'newsletter',lbl:'💌 Email'},
+  {id:'social',lbl:'📱 Twitter/X'},
+  {id:'about',lbl:'ℹ About Us'},
+  {id:'cta',lbl:'🚀 CTA Block'},
+  {id:'disclaimer',lbl:'⚖ Disclaimer'},
+];
+
+var CONTENT_PARAMS = {
+  article:[{id:'topic',lbl:'Topic',type:'text',ph:'Fed held rates at 5.25%'},{id:'kw',lbl:'Keywords',type:'text',ph:'Fed, rates, economy'},{id:'len',lbl:'Length',type:'sel',opts:['Short (300w)','Medium (600w)','Long (1000w)']},{id:'tone',lbl:'Tone',type:'sel',opts:['Neutral','Analytical','Breaking news']}],
+  headline:[{id:'topic',lbl:'Topic',type:'text',ph:'Bitcoin reaches $80,000'},{id:'style',lbl:'Style',type:'sel',opts:['News','Analytical','SEO']}],
+  meta:[{id:'topic',lbl:'Page topic',type:'text',ph:'Stock market article'},{id:'kw',lbl:'Keywords',type:'text',ph:'stock market, investing, 2026'}],
+  newsletter:[{id:'topic',lbl:'Topic',type:'text',ph:'Weekly market review'},{id:'cta',lbl:'CTA text',type:'text',ph:'Read the full analysis'},{id:'tone',lbl:'Tone',type:'sel',opts:['Informational','Urgent','Friendly']}],
+  social:[{id:'topic',lbl:'Topic',type:'text',ph:'Fed rate decision'},{id:'count',lbl:'Count',type:'sel',opts:['3 variants','5 variants']}],
+  about:[{id:'angle',lbl:'Angle',type:'sel',opts:['Financial education','Market analysis','Independent research','Daily briefings']}],
+  cta:[{id:'benefit',lbl:'Main benefit',type:'text',ph:'Stay ahead of market movements'},{id:'btn',lbl:'Button text',type:'text',ph:'Subscribe Free'}],
+  disclaimer:[{id:'dtype',lbl:'Type',type:'sel',opts:['Footer short','Standard','News/analysis','Crypto','Full with address']}],
+};
+
+// Font pools
+var FONT_POOLS = {
+  display:['Syne','Playfair Display','DM Serif Display','Fraunces','Cormorant Garamond','Josefin Sans','Outfit','Plus Jakarta Sans','Abril Fatface','Bebas Neue','Cinzel','Raleway','Montserrat','Oswald','Barlow Condensed','Exo 2','Russo One','Teko','Righteous','Prompt','Saira','Jost','Kanit','Lexend','Figtree','Nunito','Urbanist','Instrument Serif','Libre Baskerville','Literata'],
+  body:['DM Sans','Source Serif 4','IBM Plex Sans','Lato','Nunito Sans','Open Sans','Poppins','Rubik','Work Sans','Karla','Mulish','Cabin','Manrope','Quicksand','Hind','Noto Sans','Barlow','Fira Sans','Titillium Web','Oxygen','Dosis','Merriweather','Bitter','Lora','Cardo','Spectral','EB Garamond','Crimson Pro','Arimo','Kumbh Sans'],
+};
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+var S = {
+  step:1, vertical:'finance', siteType:null, domain:'trt',
+  variants:{}, disabledSlots:{},
+  images:[], palette:{}, approvedFonts:[],
+  dispFontsShown:6, bodyFontsShown:6,
+  analysisDesc:'', _dispPool:[], _bodyPool:[],
+  selectedDomain:null, contentType:'article', generatedContent:'',
+  previewBlocks:[],
+};
+
+// ══════════════════════════════════════════════════
+// STEP NAV
+// ══════════════════════════════════════════════════
+function goStep(n) {
+  if(n>1 && !S.siteType){toast('⚠ Спочатку виберіть тип сайту');return;}
+  S.step=n;
+  for(var i=1;i<=6;i++){
+    var si=document.getElementById('si'+i), sn=document.getElementById('sn'+i);
+    si.classList.remove('act','done');
+    if(i<n){si.classList.add('done');sn.textContent='✓';}
+    else if(i===n){si.classList.add('act');sn.textContent=i;}
+    else sn.textContent=i;
+  }
+  for(var i=1;i<=6;i++) document.getElementById('p'+i).classList.toggle('act',i===n);
+  document.getElementById('sb').classList.toggle('hide', !(n===2 && S.vertical==='finance'));
+  if(n===2) buildBlocks();
+  if(n===4) buildStudio();
+  if(n===5){renderDomains();renderContentTypes();renderContentParams();}
+  if(n===6) buildFinal();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════
+// STEP 1 — VERTICALS & CATALOG
+// ══════════════════════════════════════════════════
+function selVertical(vid) {
+  S.vertical=vid;
+  S.siteType=null; S.variants={}; S.disabledSlots={};
+  document.querySelectorAll('.vtab').forEach(function(t){t.classList.remove('act');});
+  document.getElementById('vtab-'+vid).classList.add('act');
+  document.getElementById('vert-desc').textContent=VERTICALS[vid].desc;
+  renderCatalog();
+  var btn=document.getElementById('s1btn');
+  if(btn) btn.disabled=true;
+}
+
+function renderCatalog() {
+  var types=SITE_TYPES[S.vertical]||[];
+  var grid=document.getElementById('cat-grid');
+  if(!grid)return;
+  grid.innerHTML=types.map(function(t){
+    var stackHtml='<span class="tc-stack '+(t.stack==='WP'?'stack-wp':'stack-html')+'">'+(t.stack==='WP'?'⚙ WP+Tailwind':'⚡ HTML5+CDN')+'</span>';
+    return '<div class="tc '+(S.siteType===t.id?'sel':'')+'" id="tc-'+t.id+'" style="--cc:'+t.cc+'" onclick="selType(\''+t.id+'\')">'
+      +'<div class="tc-chk">✓</div>'
+      +'<div class="tc-ico">'+t.ico+'</div>'
+      +'<div class="tc-ttl">'+t.ttl+'</div>'
+      +'<div class="tc-dsc">'+t.dsc+'</div>'
+      +stackHtml
+      +'<div class="tc-tgs">'+t.tgs.map(function(g){return '<span class="tc-tg">'+g+'</span>';}).join('')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function selType(id) {
+  S.siteType=id; S.variants={}; S.disabledSlots={};
+  document.querySelectorAll('.tc').forEach(function(c){c.classList.remove('sel');});
+  var el=document.getElementById('tc-'+id);
+  if(el) el.classList.add('sel');
+  var btn=document.getElementById('s1btn');
+  if(btn) btn.disabled=false;
+}
+
+// ══════════════════════════════════════════════════
+// STEP 2 — BLOCKS
+// ══════════════════════════════════════════════════
+function getTypeObj() {
+  var arr=SITE_TYPES[S.vertical]||[];
+  return arr.find(function(t){return t.id===S.siteType;})||null;
+}
+
+function buildBlocks() {
+  var t=getTypeObj(); if(!t)return;
+  document.getElementById('b2-title').textContent='Шаг 2 — '+t.ico+' '+t.ttl;
+  document.getElementById('b2-desc').textContent='Выберите вариант. Повторный клик на опциональный блок — снимает выбор.';
+  document.getElementById('st-type').textContent=t.ttl;
+  document.getElementById('st-stack').textContent=t.stack==='WP'?'WordPress':'HTML5';
+  var ids=t.slots;
+  var html='';
+  ids.forEach(function(id){
+    var s=SLOTS[id]; if(!s)return;
+    var isDisabled=!!S.disabledSlots[id];
+    html+='<div class="slot'+(isDisabled?' disabled':'')+'" id="slot-'+id+'">';
+    html+='<div class="sh">';
+    html+='<span class="snum2">'+s.num+'</span>';
+    html+='<span class="sttl">'+s.ttl+'</span>';
+    if(!s.req){
+      html+='<span style="margin-left:auto;font-size:9px;font-family:\'DM Mono\',monospace;color:var(--m1)">◇ optional</span>';
+    } else {
+      html+='<span style="margin-left:auto;font-size:9px;font-family:\'DM Mono\',monospace;color:var(--gold)">★ required</span>';
+    }
+    html+='</div>';
+    html+='<div class="svars">';
+    s.variants.forEach(function(v){
+      var isSel=S.variants[s.id]===v.id && !isDisabled;
+      html+='<div class="vo '+(isSel?'sel':'')+(isDisabled?' desel':'')+'" id="vo-'+s.id+'-'+v.id+'" onclick="pickVar(\''+s.id+'\',\''+v.id+'\')">';
+      html+='<div class="vh">';
+      html+='<span class="vlet">'+v.let+'</span>';
+      html+='<span class="vname">'+v.name+'</span>';
+      if(v.tags&&v.tags.length){
+        html+='<div class="vtags">'+v.tags.map(function(tg){
+          var map={ta:'AO',tp:'PL',to:'OG'};
+          return '<span class="tag '+(tg in map?tg:'')+'" style="font-size:7px">'+(map[tg]||tg)+'</span>';
+        }).join('')+'</div>';
+      }
+      html+='</div>';
+      html+='<div class="vbody">';
+      html+='<div class="vdesc">'+v.dsc+'</div>';
+      html+=(WF[v.wf]||'<div class="wf" style="text-align:center;padding:8px;font-size:8px">preview</div>');
+      if(!s.req){
+        html+='<div class="desel-hint">Клікніть ще раз — зняти вибір</div>';
+      }
+      html+='</div>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('slots-c').innerHTML=html;
+  // Auto-select first variant if not selected
+  ids.forEach(function(id){
+    var s=SLOTS[id];
+    if(s && !S.variants[id] && !S.disabledSlots[id] && s.variants.length) pickVar(id,s.variants[0].id,false);
+  });
+  updateDraft();
+}
+
+function pickVar(sid, vid, upd) {
+  if(upd===undefined) upd=true;
+  var s=SLOTS[sid]; if(!s)return;
+  // If already selected and NOT required → toggle off
+  if(S.variants[sid]===vid && !s.req){
+    delete S.variants[sid];
+    S.disabledSlots[sid]=true;
+    document.querySelectorAll('[id^="vo-'+sid+'-"]').forEach(function(el){el.classList.remove('sel');});
+    var slotEl=document.getElementById('slot-'+sid);
+    if(slotEl) slotEl.classList.add('disabled');
+    if(upd) updateDraft();
+    return;
+  }
+  // Enable slot if it was disabled
+  delete S.disabledSlots[sid];
+  var slotEl=document.getElementById('slot-'+sid);
+  if(slotEl) slotEl.classList.remove('disabled');
+  S.variants[sid]=vid;
+  document.querySelectorAll('[id^="vo-'+sid+'-"]').forEach(function(el){el.classList.remove('sel','desel');});
+  var el=document.getElementById('vo-'+sid+'-'+vid);
+  if(el) el.classList.add('sel');
+  if(upd) updateDraft();
+}
+
+function updateDraft() {
+  var t=getTypeObj(); if(!t)return;
+  var txt='', cnt=0;
+  t.slots.forEach(function(id){
+    if(S.disabledSlots[id]) return;
+    var s=SLOTS[id]; if(!s)return;
+    var vid=S.variants[id]; if(!vid)return;
+    var v=s.variants.find(function(v){return v.id===vid;}); if(!v)return;
+    txt+='['+s.num+'] '+s.ttl+': '+v.name+'\n';
+    cnt++;
+  });
+  document.getElementById('draft').textContent='=== '+t.ttl.toUpperCase()+' ('+t.stack+') ===\n'+txt;
+  document.getElementById('st-blk').textContent=cnt;
+}
+
+function selDom(d) {
+  S.domain=d;
+  document.querySelectorAll('.db').forEach(function(b){b.classList.remove('act');});
+  var el=document.getElementById('btn-'+d);
+  if(el) el.classList.add('act');
+}
+
+// ══════════════════════════════════════════════════
+// STEP 3 — DESIGN ANALYZER
+// ══════════════════════════════════════════════════
+function handleFiles(files) {
+  Array.from(files).slice(0,3-S.images.length).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(e){S.images.push({dataUrl:e.target.result,name:f.name});renderPrevs();};
+    r.readAsDataURL(f);
+  });
+}
+function renderPrevs() {
+  document.getElementById('prevs').innerHTML=S.images.map(function(img,i){
+    return '<div class="pth"><img src="'+img.dataUrl+'" alt="ref"/><button class="pdel" onclick="S.images.splice('+i+',1);renderPrevs()">✕</button></div>';
+  }).join('');
+}
+var uz=document.getElementById('upzone');
+uz.addEventListener('dragover',function(e){e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',function(){uz.classList.remove('drag');});
+uz.addEventListener('drop',function(e){e.preventDefault();uz.classList.remove('drag');handleFiles(e.dataTransfer.files);});
+
+function addUrl() {
+  var l=document.getElementById('urllist');
+  if(l.children.length>=3){toast('Максимум 3 URL');return;}
+  var r=document.createElement('div');r.className='urlrow';
+  r.innerHTML='<input class="urlinput" type="url" placeholder="https://"/><button class="urldel" onclick="this.parentElement.remove()">✕</button>';
+  l.appendChild(r);
+}
+function getUrls(){return Array.from(document.querySelectorAll('.urlinput')).map(function(i){return i.value.trim();}).filter(Boolean);}
+function getStyles(){return Array.from(document.querySelectorAll('.stag.on')).map(function(el){return el.textContent.trim();});}
+
+// Status log
+var slog=document.getElementById('slog');
+function logShow(){slog.classList.add('show');}
+function logHide(){slog.classList.remove('show');}
+function logClear(){slog.innerHTML='';}
+function logAdd(txt,type){
+  if(!type) type='sp';
+  var id='l'+Date.now()+Math.random();
+  var d=document.createElement('div');d.className='ll';d.id=id;
+  d.innerHTML='<div class="ld ld-'+type+'"></div><span>'+txt+'</span>';
+  slog.appendChild(d);slog.scrollTop=slog.scrollHeight;
+  return id;
+}
+function logUp(id,txt,type){
+  if(!type) type='ok';
+  var el=document.getElementById(id);if(!el)return;
+  el.querySelector('.ld').className='ld ld-'+type;
+  el.querySelector('span').textContent=txt;
+}
+
+// Canvas k-means color extraction
+function extractColorsFromImage(dataUrl) {
+  return new Promise(function(resolve){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=120;
+      var scale=Math.min(MAX/img.width,MAX/img.height);
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      var data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      var pixels=[];
+      for(var i=0;i<data.length;i+=16){
+        var r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
+        if(a>128 && !(r>240&&g>240&&b>240) && !(r<15&&g<15&&b<15)) pixels.push([r,g,b]);
+      }
+      resolve(kMeans(pixels,8));
+    };
+    img.src=dataUrl;
+  });
+}
+
+function kMeans(pixels,k) {
+  if(pixels.length<k) return pixels.map(function(p){return rgbToHex(p[0],p[1],p[2]);});
+  var step=Math.floor(pixels.length/k);
+  var centers=pixels.filter(function(_,i){return i%step===0;}).slice(0,k);
+  for(var iter=0;iter<8;iter++){
+    var clusters=Array.from({length:k},function(){return [];});
+    pixels.forEach(function(p){
+      var best=0,bestD=Infinity;
+      centers.forEach(function(c,i){
+        var d=(p[0]-c[0])*(p[0]-c[0])+(p[1]-c[1])*(p[1]-c[1])+(p[2]-c[2])*(p[2]-c[2]);
+        if(d<bestD){bestD=d;best=i;}
+      });
+      clusters[best].push(p);
+    });
+    centers=clusters.map(function(cl){
+      if(!cl.length) return [128,128,128];
+      return [
+        Math.round(cl.reduce(function(s,p){return s+p[0];},0)/cl.length),
+        Math.round(cl.reduce(function(s,p){return s+p[1];},0)/cl.length),
+        Math.round(cl.reduce(function(s,p){return s+p[2];},0)/cl.length)
+      ];
+    });
+  }
+  return centers.sort(function(a,b){return brightness(b)-brightness(a);}).map(function(c){return rgbToHex(c[0],c[1],c[2]);});
+}
+function brightness(c){return c[0]*0.299+c[1]*0.587+c[2]*0.114;}
+function rgbToHex(r,g,b){return '#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('').toUpperCase();}
+
+function assignColorRoles(hexColors) {
+  var sorted=hexColors.slice().sort(function(a,b){
+    function lum(h){var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return r*0.299+g*0.587+b*0.114;}
+    return lum(a)-lum(b);
+  });
+  var roles={};
+  roles.background=sorted[0]||'#0d0f14';
+  roles.surface=sorted[1]||'#141720';
+  roles.textPrimary=sorted[sorted.length-1]||'#e8eaf2';
+  roles.textMuted=sorted[sorted.length-2]||'#6a7390';
+  var accents=hexColors.filter(function(h){
+    var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    return Math.max(r,g,b)-Math.min(r,g,b)>60;
+  });
+  roles.accent=accents[0]||'#4f8eff';
+  roles.accentSecondary=accents[1]||hexColors[Math.floor(hexColors.length/2)]||'#7c5cfc';
+  roles.border=sorted[2]||'#252a3a';
+  roles.surfaceAlt=sorted[3]||'#1c2030';
+  return roles;
+}
+
+async function extractFromUrl(url) {
+  var result={fonts:[],colors:[]};
+  try{
+    var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    var r=await fetch(proxy,{signal:AbortSignal.timeout(6000)});
+    var d=await r.json();
+    var html=d.contents||'';
+    var gfMatches=Array.from(html.matchAll(/fonts\.googleapis\.com\/css2?\?family=([^"'&\s]+)/g));
+    gfMatches.forEach(function(m){
+      var decoded=decodeURIComponent(m[1]);
+      var names=decoded.match(/([A-Z][a-zA-Z\s]+)(?::|\+|&|$)/g)||[];
+      names.forEach(function(n){
+        var clean=n.replace(/[:+&]/g,'').replace(/\+/g,' ').trim();
+        if(clean.length>2) result.fonts.push(clean);
+      });
+    });
+    var ffMatches=Array.from(html.matchAll(/font-family:\s*['"]?([^;'"<]+)/g));
+    ffMatches.forEach(function(m){
+      var f=m[1].split(',')[0].replace(/['"]/g,'').trim();
+      if(f.length>2 && !['inherit','sans-serif','serif','monospace','initial'].includes(f)) result.fonts.push(f);
+    });
+    var hexMatches=html.match(/#[0-9a-fA-F]{6}/g)||[];
+    result.colors=Array.from(new Set(hexMatches)).slice(0,10);
+    result.fonts=Array.from(new Set(result.fonts)).slice(0,6);
+  }catch(e){}
+  return result;
+}
+
+async function runAnalysis() {
+  var images=S.images, urls=getUrls(), styles=getStyles();
+  if(!images.length&&!urls.length&&!styles.length){toast('⚠ Завантажте скриншот або оберіть стиль');return;}
+  var btn=document.getElementById('abtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin">⏳</span> Аналізую...';
+  logClear(); logShow();
+  var allColors=[],allFonts=[];
+  if(images.length){
+    var lid=logAdd('Витягую кольори з '+images.length+' зображень (Canvas API)...','sp');
+    for(var img of images){
+      var colors=await extractColorsFromImage(img.dataUrl);
+      allColors=allColors.concat(colors);
+    }
+    allColors=Array.from(new Set(allColors));
+    logUp(lid,'✓ Витягнуто '+allColors.length+' кольорів','ok');
+  }
+  if(urls.length){
+    var lid2=logAdd('Парсю CSS з '+urls.length+' URL...','sp');
+    for(var url of urls){
+      var data=await extractFromUrl(url);
+      allFonts=allFonts.concat(data.fonts);
+      allColors=allColors.concat(data.colors);
+    }
+    allFonts=Array.from(new Set(allFonts));
+    logUp(lid2,'✓ Знайдено '+allFonts.length+' шрифтів з CSS','ok');
+  }
+  var lid3=logAdd('Присвоюю ролі кольорам...','sp');
+  allColors=Array.from(new Set(allColors));
+  S.palette=assignColorRoles(allColors.length>=5?allColors:['#0d0f14','#141720','#1c2030','#4f8eff','#e8eaf2','#6a7390','#252a3a','#7c5cfc']);
+  logUp(lid3,'✓ Палітра сформована','ok');
+  var isMkt=styles.includes('Маркетинговий / агентський');
+  var isDark=styles.includes('Тёмная тема')||styles.includes('Тёмна тема')||(allColors[0]&&parseInt(allColors[0].slice(1,3),16)<100);
+  var dispPool=allFonts.filter(function(f){return FONT_POOLS.display.includes(f);});
+  var bodyPool=allFonts.filter(function(f){return FONT_POOLS.body.includes(f);});
+  if(!dispPool.length) dispPool=isMkt?['Syne','Outfit','Plus Jakarta Sans','Bebas Neue']:(isDark?['Syne','DM Serif Display','Fraunces']:['Playfair Display','Cormorant Garamond','Syne']);
+  if(!bodyPool.length) bodyPool=isMkt?['DM Sans','IBM Plex Sans','Manrope']:['DM Sans','Source Serif 4','IBM Plex Sans'];
+  S._dispPool=dispPool.concat(FONT_POOLS.display.filter(function(f){return !dispPool.includes(f);}));
+  S._bodyPool=bodyPool.concat(FONT_POOLS.body.filter(function(f){return !bodyPool.includes(f);}));
+  S.dispFontsShown=6; S.bodyFontsShown=6;
+  S.analysisDesc='Canvas API аналіз ('+images.length+' зображень) + CSS парсер ('+urls.length+' URL). '+
+    (allFonts.length?'Виявлені шрифти: '+allFonts.slice(0,3).join(', ')+'. ':'')+
+    'Стиль: '+(styles.join(', ')||'автовизначення')+'. Тема: '+(isDark?'темна':'світла')+'.';
+  logAdd('✓ Готово!','ok');
+  setTimeout(logHide,2000);
+  renderAnalysisResult();
+  btn.disabled=false; btn.innerHTML='<span>🔍</span> Аналізувати знову';
+}
+
+function renderAnalysisResult() {
+  document.getElementById('r-desc').textContent=S.analysisDesc;
+  renderEditablePalette();
+  renderFontCards('display');
+  renderFontCards('body');
+  updateConfigPreview();
+  document.getElementById('rbox').classList.remove('hidden');
+  document.getElementById('rbox').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderEditablePalette() {
+  var roles=Object.entries(S.palette);
+  document.getElementById('r-colors').innerHTML=roles.map(function(entry){
+    var role=entry[0],hex=entry[1];
+    return '<div class="color-item">'
+      +'<div class="color-swatch-wrap">'
+      +'<div class="color-swatch" style="background:'+hex+'" title="Click to edit"></div>'
+      +'<input class="color-edit-input" type="color" value="'+hex+'" onchange="updateColor(\''+role+'\',this.value)" oninput="updateColor(\''+role+'\',this.value)"/>'
+      +'</div>'
+      +'<input class="color-hex-input" type="text" value="'+hex+'" maxlength="7" onchange="updateColorHex(\''+role+'\',this.value)" id="hex-'+role+'"/>'
+      +'<div class="color-role">'+role+'</div>'
+      +'<button class="copy-swatch" onclick="navigator.clipboard.writeText(\''+hex+'\').then(function(){toast(\'✓ '+hex+' скопійовано\')})">copy</button>'
+      +'</div>';
+  }).join('');
+}
+
+function updateColor(role,hex) {
+  S.palette[role]=hex.toUpperCase();
+  var inp=document.getElementById('hex-'+role);
+  if(inp) inp.value=hex.toUpperCase();
+  var roles=Object.keys(S.palette);
+  var idx=roles.indexOf(role);
+  var swatches=document.querySelectorAll('.color-swatch');
+  if(swatches[idx]) swatches[idx].style.background=hex;
+  updateConfigPreview();
+  updateStudioStrip();
+}
+function updateColorHex(role,val) {
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    updateColor(role,val);
+    var roles=Object.keys(S.palette);
+    var idx=roles.indexOf(role);
+    var inputs=document.querySelectorAll('.color-edit-input');
+    if(inputs[idx]) inputs[idx].value=val;
+  }
+}
+
+function renderFontCards(role) {
+  var pool=role==='display'?S._dispPool:S._bodyPool;
+  var shown=role==='display'?S.dispFontsShown:S.bodyFontsShown;
+  var fonts=(pool||FONT_POOLS[role]).slice(0,shown);
+  var containerId=role==='display'?'r-disp-fonts':'r-body-fonts';
+  var fq=fonts.map(function(f){return 'family='+encodeURIComponent(f)+':wght@400;600;700';}).join('&');
+  var lkId='gf-'+role;
+  var lk=document.getElementById(lkId);
+  if(!lk){lk=document.createElement('link');lk.id=lkId;lk.rel='stylesheet';document.head.appendChild(lk);}
+  lk.href='https://fonts.googleapis.com/css2?'+fq+'&display=swap';
+  var prev={display:'Financial Insights 2026',body:'The market opened higher as investors reacted to the latest announcement.'};
+  window._allFonts=window._allFonts||{};
+  fonts.forEach(function(f){window._allFonts[role+'|'+f]=f;});
+  document.getElementById(containerId).innerHTML=fonts.map(function(f,i){
+    var app=S.approvedFonts.some(function(af){return af.name===f&&af.role===role;});
+    var isDetected=(role==='display'?S._dispPool:S._bodyPool).indexOf(f)===0&&i===0;
+    return '<div class="fcard '+(app?'app':'')+'" id="fc-'+role+'-'+i+'">'
+      +(isDetected?'<div style="position:absolute;top:0;left:0;right:0;background:#4f8eff22;font-size:8px;font-family:\'DM Mono\',monospace;color:var(--ac);padding:2px 8px;border-bottom:1px solid #4f8eff30">✦ виявлено з CSS</div>':'')
+      +'<button class="fc-ap '+(app?'done':'')+'" onclick="toggleFont(\''+f+'\',\''+role+'\','+i+',event)">'+(app?'✓':'+ В промт')+'</button>'
+      +'<div class="fc-role" style="margin-top:'+(isDetected?'18':'0')+'px">'+(role==='display'?'🔠 Display':'📖 Body')+'</div>'
+      +'<div class="fc-name">'+f+'</div>'
+      +'<div class="fc-meta">Google Fonts · '+(role==='display'?'headlines':'body text')+'</div>'
+      +'<div class="fc-prev" style="font-family:\''+f+'\',serif">'+prev[role]+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function loadMoreFonts(role) {
+  if(role==='display') S.dispFontsShown=Math.min(S.dispFontsShown+6,FONT_POOLS.display.length);
+  else S.bodyFontsShown=Math.min(S.bodyFontsShown+6,FONT_POOLS.body.length);
+  renderFontCards(role);
+}
+
+function toggleFont(name,role,idx,e) {
+  e.stopPropagation();
+  var exists=S.approvedFonts.findIndex(function(af){return af.name===name&&af.role===role;});
+  if(exists>=0) S.approvedFonts.splice(exists,1);
+  else S.approvedFonts.push({name:name,role:role});
+  var app=S.approvedFonts.some(function(af){return af.name===name&&af.role===role;});
+  var card=document.getElementById('fc-'+role+'-'+idx);
+  if(card){
+    card.classList.toggle('app',app);
+    var btn=card.querySelector('.fc-ap');
+    btn.className='fc-ap '+(app?'done':'');
+    btn.textContent=app?'✓':'+ В промт';
+  }
+  updateConfigPreview();
+  toast(app?'✓ '+name+' додано':'✗ '+name+' прибрано');
+}
+
+function updateConfigPreview() {
+  var disp=S.approvedFonts.find(function(f){return f.role==='display';});
+  var body=S.approvedFonts.find(function(f){return f.role==='body';});
+  var dispName=(disp&&disp.name)||S._dispPool[0]||'Syne';
+  var bodyName=(body&&body.name)||S._bodyPool[0]||'DM Sans';
+  var entries=Object.entries(S.palette||{});
+  var cfg='// tailwind.config.js\nmodule.exports = {\n  content: [\'./**/*.php\', \'./**/*.html\'],\n  theme: {\n    extend: {\n      colors: {\n'
+    +entries.map(function(e){return '        \''+e[0]+'\': \''+e[1]+'\',';}).join('\n')
+    +'\n      },\n      fontFamily: {\n        display: [\''+dispName+'\', \'serif\'],\n        body: [\''+bodyName+'\', \'sans-serif\'],\n        mono: [\'DM Mono\', \'monospace\'],\n      },\n    },\n  },\n  plugins: [require(\'@tailwindcss/typography\')],\n};';
+  var el=document.getElementById('r-config');
+  if(el) el.textContent=cfg;
+}
+
+function copyConfig() {
+  var el=document.getElementById('r-config');
+  if(el) navigator.clipboard.writeText(el.textContent).then(function(){toast('✓ Config скопійовано');});
+}
+
+// ══════════════════════════════════════════════════
+// STEP 4 — DESIGN STUDIO
+// ══════════════════════════════════════════════════
+function buildStudio() {
+  updateStudioStrip();
+  renderStudioColors();
+  buildFontSelects();
+  buildPreviewBlocks();
+  var dom=DOMAINS.find(function(d){return d.id===S.domain;});
+  var t=getTypeObj();
+  var domUrl=dom?dom.url:(t?t.ttl.toLowerCase().replace(/\s+/g,'')+'.com':'yoursite.com');
+  document.getElementById('preview-domain-url').textContent=domUrl;
+}
+
+function updateStudioStrip() {
+  var strip=document.getElementById('studio-strip');
+  if(!strip)return;
+  strip.innerHTML=Object.values(S.palette||{}).map(function(hex){
+    return '<div style="background:'+hex+'"></div>';
+  }).join('');
+}
+
+function renderStudioColors() {
+  var el=document.getElementById('studio-colors');
+  if(!el)return;
+  el.innerHTML=Object.entries(S.palette||{}).map(function(entry){
+    var role=entry[0],hex=entry[1];
+    return '<div style="display:flex;align-items:center;gap:8px;">'
+      +'<div style="position:relative;width:28px;height:28px;border-radius:5px;flex-shrink:0;border:1px solid var(--bd2);overflow:hidden;background:'+hex+';">'
+      +'<input type="color" value="'+hex+'" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="updateColor(\''+role+'\',this.value)" oninput="updateColor(\''+role+'\',this.value)"/>'
+      +'</div>'
+      +'<input type="text" value="'+hex+'" maxlength="7" style="flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:4px 7px;color:var(--tx);font-size:10px;font-family:\'DM Mono\',monospace;outline:none;" onchange="updateColor(\''+role+'\',this.value)"/>'
+      +'<span style="font-size:9px;color:var(--m1);font-family:\'DM Mono\',monospace;min-width:90px;">'+role+'</span>'
+      +'</div>';
+  }).join('');
+}
+
+function buildFontSelects() {
+  var disp=document.getElementById('sel-disp-font');
+  var body=document.getElementById('sel-body-font');
+  var dispList=FONT_POOLS.display.slice(0,20);
+  var bodyList=FONT_POOLS.body.slice(0,20);
+  disp.innerHTML=dispList.map(function(f){return '<option value="'+f+'">'+f+'</option>';}).join('');
+  body.innerHTML=bodyList.map(function(f){return '<option value="'+f+'">'+f+'</option>';}).join('');
+  var defD=(S.approvedFonts.find(function(f){return f.role==='display';}))||{name:S._dispPool[0]||'Syne'};
+  var defB=(S.approvedFonts.find(function(f){return f.role==='body';}))||{name:S._bodyPool[0]||'DM Sans'};
+  disp.value=defD.name;
+  body.value=defB.name;
+  updateStudioFonts();
+}
+
+function updateStudioFonts() {
+  var dn=document.getElementById('sel-disp-font').value||'Syne';
+  var bn=document.getElementById('sel-body-font').value||'DM Sans';
+  var lkId='studio-gf';
+  var lk=document.getElementById(lkId);
+  if(!lk){lk=document.createElement('link');lk.id=lkId;lk.rel='stylesheet';document.head.appendChild(lk);}
+  lk.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(dn)+':wght@700&family='+encodeURIComponent(bn)+':wght@400&display=swap';
+  var de=document.getElementById('studio-font-disp');
+  var be=document.getElementById('studio-font-body');
+  if(de) de.style.fontFamily="'"+dn+"',serif";
+  if(be) be.style.fontFamily="'"+bn+"',sans-serif";
+}
+
+var BLOCK_ICONS={
+  'hdr':'🔝','featured':'⭐','newsletter':'📧','newsfeed':'📰','special':'🚩','ftr':'⬇',
+  'hero-blog':'🦸','blogfeed':'✍',
+  'fin-hero':'🚀','fin-process':'🔄','fin-features':'✨','fin-subscribe':'💌','fin-about':'ℹ',
+  'sub-hero':'💌','sub-props':'✅','sub-testimonials':'💬',
+  'mkt-hdr':'🔝','mkt-hero':'🦸','mkt-stats':'📊','mkt-services':'⚙','mkt-process':'🔄',
+  'mkt-about':'👥','mkt-clients':'🤝','mkt-news':'📰','mkt-contact':'✉','mkt-ftr':'⬇',
+  'mkt-blog-hero':'🦸','mkt-blog-feed':'📰',
+  'mkt-sub-hero':'💌','mkt-sub-props':'✅','mkt-sub-testimonials':'💬',
+};
+
+var BLOCK_COLORS={
+  'hdr':'#4f8eff12','featured':'#3ecf8e10','newsletter':'#f0c04010','newsfeed':'#7c5cfc10',
+  'special':'#f0606010','ftr':'#60688008',
+  'fin-hero':'#f0c04012','fin-subscribe':'#3ecf8e10',
+  'mkt-hdr':'#f0804012','mkt-hero':'#f0804010','mkt-stats':'#f0c04010',
+  'mkt-services':'#7c5cfc10','mkt-contact':'#4f8eff10','mkt-ftr':'#60688008',
+};
+
+function buildPreviewBlocks() {
+  var t=getTypeObj(); if(!t)return;
+  S.previewBlocks=t.slots.map(function(id){
+    var s=SLOTS[id]; if(!s)return null;
+    var vid=S.variants[id];
+    var v=s.variants.find(function(v){return v.id===vid;})||s.variants[0];
+    return {id:id, slotDef:s, variant:v, enabled:!S.disabledSlots[id]};
+  }).filter(Boolean);
+  renderPreviewBlocks();
+}
+
+function renderPreviewBlocks() {
+  var container=document.getElementById('preview-blocks');
+  container.innerHTML=S.previewBlocks.map(function(b,i){
+    var isOff=!b.enabled;
+    var bg=BLOCK_COLORS[b.id]||'#4f8eff08';
+    var html='<div class="preview-block '+(isOff?'pb-off':'')+'" id="pb-'+i+'"';
+    if(!isOff){
+      html+=' draggable="true" ondragstart="dragStart(event,'+i+')" ondragover="dragOver(event,'+i+')" ondrop="drop(event,'+i+')" ondragleave="dragLeave(event,'+i+')"';
+    }
+    html+=' style="background:'+bg+'">';
+    if(!isOff) html+='<span class="pb-handle">⠿</span>';
+    else html+='<span style="width:16px;opacity:.3">—</span>';
+    html+='<span class="pb-icon">'+(BLOCK_ICONS[b.id]||'🔲')+'</span>';
+    html+='<div class="pb-info">';
+    html+='<div class="pb-name">'+b.slotDef.ttl+'</div>';
+    html+='<div class="pb-variant">'+(isOff?'disabled':(b.variant?b.variant.name:'—'))+'</div>';
+    html+='</div>';
+    if(!isOff && b.slotDef.variants.length>1){
+      html+='<button class="pb-change" onclick="changeBlockVariant('+i+')">Сменить</button>';
+    }
+    if(!b.slotDef.req){
+      html+='<button class="pb-toggle '+(isOff?'off':'on')+'" onclick="toggleBlock('+i+')">'+(isOff?'OFF':'ON')+'</button>';
+    }
+    html+='</div>';
+    return html;
+  }).join('');
+}
+
+var dragIdx=null;
+function dragStart(e,idx){dragIdx=idx;var el=document.getElementById('pb-'+idx);if(el)el.classList.add('dragging');}
+function dragOver(e,idx){e.preventDefault();var el=document.getElementById('pb-'+idx);if(el)el.classList.add('drag-over');}
+function dragLeave(e,idx){var el=document.getElementById('pb-'+idx);if(el)el.classList.remove('drag-over');}
+function drop(e,idx){
+  e.preventDefault();
+  var el=document.getElementById('pb-'+idx);if(el)el.classList.remove('drag-over');
+  var from=document.getElementById('pb-'+dragIdx);if(from)from.classList.remove('dragging');
+  if(dragIdx===null||dragIdx===idx)return;
+  var moved=S.previewBlocks.splice(dragIdx,1)[0];
+  S.previewBlocks.splice(idx,0,moved);
+  dragIdx=null;
+  renderPreviewBlocks();
+  toast('✓ Порядок оновлено');
+}
+
+function toggleBlock(idx) {
+  var b=S.previewBlocks[idx];
+  if(!b||b.slotDef.req){toast('Required блок не можна вимкнути');return;}
+  b.enabled=!b.enabled;
+  if(b.enabled){
+    delete S.disabledSlots[b.id];
+    if(!S.variants[b.id]&&b.slotDef.variants.length) S.variants[b.id]=b.slotDef.variants[0].id;
+    b.variant=b.slotDef.variants.find(function(v){return v.id===S.variants[b.id];})||b.slotDef.variants[0];
+  } else {
+    S.disabledSlots[b.id]=true;
+  }
+  renderPreviewBlocks();
+  toast(b.enabled?'✓ Блок увімкнено':'✗ Блок вимкнено');
+}
+
+function changeBlockVariant(idx) {
+  var b=S.previewBlocks[idx]; if(!b)return;
+  var vars=b.slotDef.variants;
+  var curIdx=vars.findIndex(function(v){return v.id===(b.variant&&b.variant.id);});
+  b.variant=vars[(curIdx+1)%vars.length];
+  S.variants[b.id]=b.variant.id;
+  renderPreviewBlocks();
+  toast('✓ '+b.slotDef.ttl+': '+b.variant.name);
+}
+
+// ══════════════════════════════════════════════════
+// STEP 5 — CONTENT GENERATOR
+// ══════════════════════════════════════════════════
+function renderDomains() {
+  var isMkt=S.vertical==='marketing';
+  var lbl=document.getElementById('cgen-domain-lbl');
+  if(lbl) lbl.textContent=isMkt?'Сайт':'Домен';
+  var descEl=document.getElementById('cgen-desc');
+  if(isMkt){
+    if(descEl) descEl.textContent='Генерація контенту для маркетинг-агентства з Universal Compliance Rules.';
+    document.getElementById('domain-grid').innerHTML=
+      '<div class="dc sel" style="grid-column:1/-1;border-color:var(--ora)">'
+      +'<div class="dc-dot" style="background:#f08040"></div>'
+      +'<div class="dc-name">Marketing Agency Site</div>'
+      +'<div class="dc-sub">Universal compliance · No specific partner</div>'
+      +'</div>';
+    S.selectedDomain='generic-mkt';
+    // Update compliance info
+    var ci=document.getElementById('comp-info-title');
+    var cb=document.getElementById('comp-info-body');
+    if(ci) ci.textContent='Universal Compliance';
+    if(cb) cb.textContent='· No fabricated awards or "#1 Agency"\n· No unverified stats\n· Real testimonials only (FTC 2023)\n· Privacy Policy mandatory\n· No misleading UX patterns\n· Contact info must be accurate';
+    return;
+  }
+  if(descEl) descEl.textContent='Виберіть домен і тип контенту. Генерація з урахуванням compliance.';
+  var ci=document.getElementById('comp-info-title');
+  var cb=document.getElementById('comp-info-body');
+  if(ci) ci.textContent='Finance Compliance';
+  if(cb) cb.textContent='· FTC Act / SEC Rule 156\n· FINRA Rule 2210\n· CAN-SPAM Act\n· Finance Disclaimer mandatory\n· No guaranteed returns\n· No insider language\n· No pump language';
+  document.getElementById('domain-grid').innerHTML=DOMAINS.map(function(d){
+    return '<div class="dc '+(S.selectedDomain===d.id?'sel':'')+'" id="dc-'+d.id+'" onclick="selDomain2(\''+d.id+'\')">'
+      +'<div class="dc-dot" style="background:'+d.color+'"></div>'
+      +'<div class="dc-name">'+d.name+'</div>'
+      +'<div class="dc-sub">'+d.sub+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function selDomain2(id) {
+  S.selectedDomain=id;
+  document.querySelectorAll('.dc').forEach(function(c){c.classList.remove('sel');});
+  var el=document.getElementById('dc-'+id);
+  if(el) el.classList.add('sel');
+}
+
+function renderContentTypes() {
+  document.getElementById('ctype-grid').innerHTML=CONTENT_TYPES.map(function(t){
+    return '<div class="ct '+(S.contentType===t.id?'sel':'')+'" onclick="selCtype(\''+t.id+'\',this)">'+t.lbl+'</div>';
+  }).join('');
+}
+
+function selCtype(id,el) {
+  S.contentType=id;
+  document.querySelectorAll('.ct').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel');
+  renderContentParams();
+}
+
+function renderContentParams() {
+  var params=CONTENT_PARAMS[S.contentType]||[];
+  document.getElementById('cparams').innerHTML=params.map(function(f){
+    var input='';
+    if(f.type==='text') input='<input class="cp-in" id="cp-'+f.id+'" placeholder="'+(f.ph||'')+'">';
+    else if(f.type==='sel') input='<select class="cp-sel" id="cp-'+f.id+'">'+(f.opts||[]).map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
+    return '<div class="cp-row"><div class="cp-lbl">'+f.lbl+'</div>'+input+'</div>';
+  }).join('');
+}
+
+function getParam(id){var el=document.getElementById('cp-'+id);return el?el.value.trim():'';}
+
+function generateContent() {
+  if(!S.selectedDomain){toast('⚠ Виберіть домен');return;}
+  var btn=document.getElementById('gen-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin">⏳</span> Генерую...';
+  var params={};
+  (CONTENT_PARAMS[S.contentType]||[]).forEach(function(f){params[f.id]=getParam(f.id);});
+  var isMkt=S.vertical==='marketing';
+  var content=isMkt?generateMarketingContent(S.contentType,params):generateFinanceContent(S.contentType,params);
+  S.generatedContent=content;
+  var t=CONTENT_TYPES.find(function(t){return t.id===S.contentType;});
+  document.getElementById('cr-title').textContent=(t?t.lbl:'')+' — '+(isMkt?'Marketing Agency':'DOMAINS.find(d=>d.id===S.selectedDomain)?.name||S.selectedDomain');
+  document.getElementById('cr-title').textContent=(t?t.lbl:'')+' — '+(isMkt?'Marketing Agency':(DOMAINS.find(function(d){return d.id===S.selectedDomain;})||{name:S.selectedDomain}).name);
+  document.getElementById('cr-body').textContent=content;
+  document.getElementById('cresult').classList.remove('hidden');
+  document.getElementById('cresult').scrollIntoView({behavior:'smooth',block:'start'});
+  btn.disabled=false; btn.innerHTML='<span>✨</span> Сгенерировать';
+}
+
+function generateFinanceContent(type,p) {
+  var dom=DOMAINS.find(function(d){return d.id===S.selectedDomain;})||{name:'Finance Site',url:'example.com',pc:'Company LLC'};
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var topic=p.topic||'Latest market developments';
+  var discl='\n\n---\nDISCLAIMER: This content is for informational purposes only and does not constitute financial advice. Investing involves risk, including the possible loss of principal. Past performance is not indicative of future results.\n[Generated for: '+dom.name+' | '+dateStr+']';
+  var map={
+    article:'# '+topic.toUpperCase()+'\n\nBy '+dom.name+' Editorial Team | '+dateStr+'\n\nMarkets reacted today as '+topic.toLowerCase()+'. Analysts have been monitoring the situation closely.\n\nKey context: Recent data suggests a measured response from institutional participants. Financial professionals recommend reviewing individual risk tolerance.\n\nFrom a technical perspective, similar developments have produced mixed outcomes historically. Diversification remains the foundation of sound portfolio management.\n\nAs this story develops, '+dom.name+' will continue providing objective, fact-based coverage.'+discl,
+    headline:'HEADLINE OPTIONS for "'+topic+'":\n\n1. '+topic+': What Investors Need to Know\n2. Breaking Down '+topic+': Market Implications for '+now.getFullYear()+'\n3. Is '+topic+' a Warning Sign? What the Data Shows\n4. '+topic+' — Complete Analysis ('+now.getFullYear()+')\n5. '+topic+': Markets React as Analysts Weigh In'+discl,
+    meta:'META TAGS for "'+topic+'":\n\nTitle 1: '+topic+' | '+dom.name+' ('+now.getFullYear()+')\nDesc 1: Stay informed on '+topic+'. '+dom.name+' delivers objective financial news. Not financial advice.\n\nTitle 2: '+topic+': Latest Updates — '+dom.name+'\nDesc 2: Independent market commentary on '+topic+'. Educational content only.\n\nSlug: /'+topic.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'/'+discl,
+    newsletter:'SUBJECT LINES:\n1. 📊 '+topic+' — what you need to know\n2. Market Update: '+topic+'\n\nBODY:\nHello Reader,\n\nThis week: '+topic+'.\n\nOur team has been following this closely. Here\'s what the data shows.\n\nKey takeaways:\n• Market context and background\n• Data points worth watching\n• What analysts are saying\n\nThanks for reading '+dom.name+'.\n\n'+p.cta+' →\n\n— The '+dom.name+' Editorial Team\n\n[Unsubscribe | Privacy Policy | '+dom.pc+' LLC]'+discl,
+    social:'TWITTER/X POSTS:\n\n1. '+topic+'. Our independent analysis: no hype, no guarantees. [link] #Finance #Markets\n\n2. Markets reacting to '+topic+'. Key data points: [link] #MarketAnalysis\n\n3. Our take on '+topic+': what\'s happening and why it matters. [link] #Finance'+now.getFullYear()+discl,
+    about:'ABOUT US — '+dom.name+'\n\n'+dom.name+' is an independent financial news platform providing objective coverage of markets, investing, and the global economy.\n\nWhat we publish:\n• Daily market news and analysis\n• Educational investing content\n• Independent economic commentary\n\nEditorial approach: Factual, balanced reporting. No paid placements. No conflicts of interest.\n\nContact: support@'+dom.url+discl,
+    cta:'CTA BLOCK:\n\nH2: '+(p.benefit||'Stay Ahead of the Market')+'\n\nSubheadline: Join readers who rely on '+dom.name+' for independent financial coverage.\n\n✓ Daily market updates\n✓ No jargon, no hype\n✓ Independent — no conflicts of interest\n✓ Unsubscribe anytime\n\nBUTTON: '+(p.btn||'Subscribe Free')+'\n\nFine print: No spam. Informational purposes only.'+discl,
+    disclaimer:{
+      'Footer short':'This content is for informational purposes only and does not constitute financial advice. Investing involves risk, including the possible loss of principal.',
+      'Standard':'The information provided on '+dom.url+' is for general informational purposes only and should not be construed as financial, investment, or legal advice. Past performance is not indicative of future results. Investing involves risk, including the possible loss of principal.',
+      'News/analysis':dom.name+' publishes financial news for informational purposes only. Nothing constitutes a recommendation to buy or sell any security. We are not a registered investment advisor.',
+      'Crypto':'Cryptocurrency markets are highly volatile. Content on '+dom.url+' is for informational purposes only. You may lose all or part of your investment.',
+      'Full with address':dom.name+' is operated by '+dom.pc+' LLC. Information is for general informational purposes only and should not be construed as financial advice. Past performance does not guarantee future results. Investing involves risk including loss of principal.\n\nContact: support@'+dom.url+'\nCopyright © '+now.getFullYear()+' '+dom.name+'. All Rights Reserved.',
+    }[p.dtype||'Standard']||'Disclaimer generated.',
+  };
+  return map[type]||('Content for '+type+': '+JSON.stringify(p));
+}
+
+function generateMarketingContent(type,p) {
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var topic=p.topic||'digital marketing trends';
+  var agency=p.agency||'[Agency Name]';
+  var mktDiscl='\n\n---\n[Agency disclaimer: This website is for informational purposes only. Service outcomes vary. Not financial advice. | Generated: '+dateStr+']';
+  var map={
+    article:'# '+topic.toUpperCase()+'\n\nBy '+agency+' Editorial Team | '+dateStr+'\n\nIn the rapidly evolving digital landscape, '+topic.toLowerCase()+' continues to reshape how brands connect with audiences.\n\nKey observations:\n• Companies investing in this area see measurable engagement improvements\n• Success requires creative excellence and data-driven discipline\n• No shortcuts — only consistent execution and continuous optimization\n\n'+agency+' monitors these trends and advises clients on evidence-based strategies.'+mktDiscl,
+    headline:'HEADLINE OPTIONS for "'+topic+'":\n\n1. How '+topic+' Is Reshaping Brand Strategy in '+now.getFullYear()+'\n2. '+topic+': What Leading Agencies Are Doing Differently\n3. The Case for '+topic+': A Data-Driven Perspective\n4. Why '+topic+' Should Be Your Priority This Quarter\n5. '+topic+' — Strategy, Execution, and Measurable Impact'+mktDiscl,
+    meta:'META TAGS for "'+topic+'":\n\nTitle: '+topic+' | '+agency+'\nDescription: '+agency+' shares perspective on '+topic+'. Expert insights from our strategy team. For informational purposes.\nSlug: /'+topic.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'/',
+    newsletter:'SUBJECT LINES:\n1. '+topic+' — our team\'s take\n2. ['+agency+'] This week: '+topic+'\n\nBODY:\nHello,\n\nThis week we\'re exploring: '+topic+'.\n\nWhat we\'re seeing across brands we work with: disciplined investment in this area consistently outperforms reactive approaches.\n\nKey observations:\n• Trend worth watching in '+topic+'\n• Strategic implication for your brand\n• What we recommend considering\n\n'+(p.cta||'Reply to this email')+' if you want to explore how this applies to your brand.\n\n— The '+agency+' Team\n\n[Unsubscribe | Privacy Policy | '+agency+' LLC, [Address]]'+mktDiscl,
+    social:'TWITTER/X POSTS:\n\n1. '+topic+' is changing how brands connect. Our take: [link] #DigitalMarketing #Strategy\n\n2. Most agencies overcomplicate '+topic+'. The brands winning keep it simple. Our insight: [link]\n\n3. '+agency+'\'s perspective on '+topic+': what\'s working, what\'s not. [link] #AgencyLife'+mktDiscl,
+    about:'ABOUT US — '+agency+'\n\n'+agency+' is an independent digital agency specializing in experience-driven design, email marketing, and brand strategy.\n\nWhat we do:\n• Email marketing strategy & automation\n• Web design & development\n• Brand identity & strategy\n• Digital analytics & optimization\n\nOur approach: Creative vision meets data rigor. Every project starts with research, moves through collaborative design, ends with continuous optimization. Full transparency, honest reporting.\n\nContact: [email]\n'+agency+' LLC — [Address]'+mktDiscl,
+    cta:'CTA BLOCK:\n\nH2: '+(p.benefit||'Ready to Scale Your Impact?')+'\n\nSubheadline: Let\'s build something great together.\n\n✓ Proven methodology\n✓ Dedicated team, transparent process\n✓ Results-focused\n\nBUTTON: '+(p.btn||'Get in Touch')+'\n\nFine print: No commitment required. We\'ll respond within 24 hours.'+mktDiscl,
+    disclaimer:'AGENCY DISCLAIMER:\n\n'+agency+' provides digital marketing and web design services. Information on this website is for informational purposes only and does not guarantee results. Client outcomes vary based on individual circumstances and market conditions.\n\nWe are not a financial advisor. Not financial advice.\n\nPrivacy: Personal data handled per our Privacy Policy (GDPR, CCPA compliant).\n\nContact: [email] | [Address] | © '+now.getFullYear()+' '+agency+' LLC.',
+  };
+  return map[type]||('Agency content for '+type+': '+JSON.stringify(p));
+}
+
+function copyResult() {
+  navigator.clipboard.writeText(document.getElementById('cr-body').textContent).then(function(){toast('✓ Контент скопійовано');});
+}
+
+// ══════════════════════════════════════════════════
+// STEP 6 — FINAL PROMPT
+// ══════════════════════════════════════════════════
+function buildFinal() {
+  var t=getTypeObj(); if(!t)return;
+  var isMkt=S.vertical==='marketing';
+  var isStatic=isMkt||['fin-landing','fin-sub'].includes(S.siteType);
+  var stackLabel=isStatic?'HTML5 + Tailwind CSS CDN + Vanilla JS':'WordPress + Tailwind CSS';
+
+  document.getElementById('fp-type').textContent=t.ico+' '+t.ttl;
+  document.getElementById('fp-stack').textContent=stackLabel.split(' + ')[0]+'+TC';
+
+  var blocks=S.previewBlocks.length
+    ? S.previewBlocks.filter(function(b){return b.enabled&&b.variant;})
+    : t.slots.filter(function(id){return !S.disabledSlots[id];}).map(function(id){
+        var s=SLOTS[id]; if(!s)return null;
+        var vid=S.variants[id];
+        var v=s.variants.find(function(v){return v.id===vid;})||s.variants[0];
+        return {id:id,slotDef:s,variant:v,enabled:true};
+      }).filter(Boolean);
+
+  document.getElementById('fp-blk').textContent=blocks.length;
+  var pal=S.palette||{};
+  var hasPal=Object.keys(pal).length>0;
+  document.getElementById('fp-clr').textContent=hasPal?'✓ '+Object.keys(pal).length+' ролей':'—';
+
+  var blockPrompts='';
+  blocks.forEach(function(b){
+    if(!b.variant)return;
+    blockPrompts+='\n'+'━'.repeat(30)+'\n['+b.slotDef.num+' — '+b.slotDef.ttl.toUpperCase()+']\n'+b.variant.prompt+'\n';
+  });
+
+  var colorBlock='';
+  if(hasPal){
+    var entries=Object.entries(pal);
+    if(isStatic){
+      colorBlock='\n'+'━'.repeat(30)+'\n[DESIGN — COLOR PALETTE]\nExtracted via Canvas API.\n\n'
+        +'Add to tailwind.config script block:\ncolors: {\n'
+        +entries.map(function(e){return "  '"+e[0]+"': '"+e[1]+"',";}).join('\n')+'\n}\n\n'
+        +'CSS Variables:\n:root {\n'
+        +entries.map(function(e){return '  --'+e[0].replace(/([A-Z])/g,'-$1').toLowerCase()+': '+e[1]+';';}).join('\n')+'\n}\n';
+    } else {
+      colorBlock='\n'+'━'.repeat(30)+'\n[DESIGN — COLOR PALETTE]\nExtracted via Canvas API.\n\n'
+        +'tailwind.config.js extend.colors:\n'
+        +entries.map(function(e){return "  '"+e[0]+"': '"+e[1]+"',";}).join('\n')+'\n';
+    }
+  }
+
+  var disp=(S.approvedFonts.find(function(f){return f.role==='display';})||{name:document.getElementById('sel-disp-font').value||'Syne'}).name;
+  var body=(S.approvedFonts.find(function(f){return f.role==='body';})||{name:document.getElementById('sel-body-font').value||'DM Sans'}).name;
+  var gfUrl='https://fonts.googleapis.com/css2?family='+encodeURIComponent(disp)+':wght@400;600;700;800&family='+encodeURIComponent(body)+':wght@300;400;500&display=swap';
+
+  var fontBlock='\n'+'━'.repeat(30)+'\n[DESIGN — TYPOGRAPHY — GOOGLE FONTS]\n\n';
+  if(isStatic){
+    fontBlock+='Add to <head> in index.html:\n'
+      +'<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+      +'<link href="'+gfUrl+'" rel="stylesheet">\n\n'
+      +'Tailwind config:\nfontFamily: {\n'
+      +"  display: ['"+disp+"', 'serif'],\n"
+      +"  body: ['"+body+"', 'sans-serif'],\n"
+      +"  mono: ['DM Mono', 'monospace'],\n}\n";
+  } else {
+    fontBlock+='functions.php:\n'
+      +"wp_enqueue_style('google-fonts', '"+gfUrl+"');\n\n"
+      +"tailwind.config.js:\nfontFamily: { display: ['"+disp+"', 'serif'], body: ['"+body+"', 'sans-serif'] }\n";
+  }
+
+  var globalInst='';
+  if(isStatic){
+    globalInst='Platform: Static Web App / Single Page\n'
+      +'Stack: '+stackLabel+'\n\n'
+      +'OUTPUT: Generate a single index.html file with ALL sections inline.\n'
+      +'Must be instantly renderable in AI sandbox (Stitch, Genspark, CodePen).\n'
+      +'Use Tailwind CDN: <script src="https://cdn.tailwindcss.com"></'+'script>\n'
+      +'Include tailwind.config script block for design tokens (colors, fonts).\n'
+      +'Realistic mock data: placeholder text, picsum.photos images.\n'
+      +'Navigation: anchor links — #hero, #services, #process, #about, #contact.\n'
+      +'Interactions: Vanilla JS only (smooth scroll, form handler, mobile menu).\n'
+      +'NO backend, NO PHP, NO WordPress.\n'
+      +'Deliver: index.html + tailwind.config.js\n';
+  } else {
+    globalInst='Platform: WordPress CMS\n'
+      +'Stack: '+stackLabel+'\n\n'
+      +'Dynamic content: WP_Query, ACF fields, WP template tags.\n'
+      +'Responsive: sm: md: lg: breakpoints.\n'
+      +'Images: wp_get_attachment_image() with lazy loading + alt text.\n'
+      +'Navigation: wp_nav_menu() — NOT hardcoded.\n'
+      +'Required plugins: ACF Pro, Yoast SEO, CF7 or Mailchimp for WP.\n'
+      +'Deliver: functions.php, header.php, footer.php, index.php, single.php, page.php + template parts.\n';
+  }
+
+  var complianceBlock=isMkt
+    ? 'COMPLIANCE — UNIVERSAL RULES (Marketing Site):\n'
+      +'NO fabricated awards ("Award-Winning Agency") without verified proof\n'
+      +'NO unverified stats ("150+ clients") without real data\n'
+      +'NO "As Seen On" media logos without written permission\n'
+      +'NO fabricated client testimonials\n'
+      +'NO pre-checked consent checkboxes\n'
+      +'NO countdown timers that reset on reload\n'
+      +'NO stock photos presented as real team members\n'
+      +'NO portfolio section (per company policy)\n'
+      +'Privacy Policy page — mandatory\n'
+      +'Terms of Service page — mandatory\n'
+      +'All contact info must be accurate and functional\n'
+    : 'COMPLIANCE — MANDATORY (Finance — Compliance Library March 2026):\n'
+      +'NO guaranteed returns — SEC Rule 156 + FINRA Rule 2210\n'
+      +'NO insider tips / secret algorithms — SEC 10(b)\n'
+      +'NO financial predictions without disclaimer — FINRA 2210\n'
+      +'NO urgency manipulation — FTC + SEC\n'
+      +'NO luxury imagery as implied subscription result\n'
+      +'NO charts without: source + dates + disclaimer\n'
+      +'NO trading account screenshots — FTC enforcement\n'
+      +'NO pump language: moon, 100x, explode — CFTC/SEC\n'
+      +'NO anonymous experts without verified names\n'
+      +'NO "As Seen On CNN/Forbes" without permission\n'
+      +'NO pre-checked opt-in checkboxes — GDPR/CCPA/CAN-SPAM\n'
+      +'NO countdown timers that reset on reload\n'
+      +'Privacy Policy — mandatory\n'
+      +'Terms of Service — mandatory\n'
+      +'Unsubscribe mechanism — mandatory (CAN-SPAM)\n'
+      +'MANDATORY footer disclaimer:\n'
+      +'  "The information provided is for general informational purposes only\n'
+      +'  and should not be construed as financial, investment, or legal advice.\n'
+      +'  Past performance is not indicative of future results. Investing involves\n'
+      +'  risk, including the possible loss of principal."\n';
+
+  var contentSnippet=S.generatedContent
+    ? '\n'+'━'.repeat(30)+'\n[GENERATED CONTENT]\n'+S.generatedContent.slice(0,400)+'...\n'
+    : '';
+
+  var lines=[
+    '╔'+'═'.repeat(46)+'╗',
+    '  MASTER PROMPT — '+(isMkt?'MARKETING AGENCY':'FINANCE WEBSITE'),
+    '  Type: '+t.ico+' '+t.ttl,
+    '  Stack: '+stackLabel,
+    '  Vertical: '+(isMkt?'Marketing':'Finance'),
+    '  Mode: '+(isStatic?'STATIC HTML5 — AI sandbox ready':'WORDPRESS CMS'),
+    '  Generated: '+new Date().toLocaleString('uk-UA'),
+    '╚'+'═'.repeat(46)+'╝',
+    '',
+    '═══ GLOBAL INSTRUCTIONS '+'═'.repeat(20),
+    '',
+    globalInst,
+    '═══ COMPLIANCE '+'═'.repeat(29),
+    '',
+    complianceBlock,
+    colorBlock,
+    fontBlock,
+    '═══ PAGE BLOCKS (in order) '+'═'.repeat(17),
+    blockPrompts,
+    contentSnippet,
+    '═'.repeat(47),
+    'All compliance requirements above are NON-NEGOTIABLE.',
+    '═'.repeat(47),
+  ];
+
+  document.getElementById('fp-text').textContent=lines.join('\n');
+}
+
+function copyFinal() {
+  navigator.clipboard.writeText(document.getElementById('fp-text').textContent).then(function(){toast('✓ Мастер-промт скопійовано!');});
+}
+
+function resetAll() {
+  Object.assign(S,{step:1,vertical:'finance',siteType:null,domain:'trt',variants:{},disabledSlots:{},
+    images:[],palette:{},approvedFonts:[],dispFontsShown:6,bodyFontsShown:6,analysisDesc:'',
+    _dispPool:[],_bodyPool:[],selectedDomain:null,contentType:'article',generatedContent:'',previewBlocks:[]});
+  document.querySelectorAll('.vtab').forEach(function(t){t.classList.remove('act');});
+  document.getElementById('vtab-finance').classList.add('act');
+  document.getElementById('vert-desc').textContent=VERTICALS.finance.desc;
+  document.getElementById('s1btn').disabled=true;
+  document.getElementById('prevs').innerHTML='';
+  document.getElementById('rbox').classList.add('hidden');
+  document.querySelectorAll('.stag').forEach(function(t){t.classList.remove('on');});
+  renderCatalog();
+  goStep(1);
+}
+
+function toast(msg) {
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+renderCatalog();
+renderDomains();
+renderContentTypes();
+renderContentParams();
+</script>
+</body>
+</html>
